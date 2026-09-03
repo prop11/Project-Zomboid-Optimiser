@@ -28,37 +28,8 @@ function MPOptim.AudioOptimizer.Update()
     local cell = getCell and getCell()
     if not cell then return end
 
-    -- 1. Horde Groan & Footstep Concurrency Limiter (Nearest 16 zombies only)
-    if audioConcurrency then
-        local zombieList = cell:getZombieList()
-        if zombieList and zombieList:size() > maxGroanEmitters then
-            local px, py = player:getX(), player:getY()
-            activeGroanEmitters = 0
-
-            for i = 0, zombieList:size() - 1 do
-                local z = zombieList:get(i)
-                if z and not z:isDead() then
-                    local zx, zy = z:getX(), z:getY()
-                    local distSq = (zx - px) * (zx - px) + (zy - py) * (zy - py)
-
-                    if distSq > 225 then -- Beyond 15 tiles
-                        if activeGroanEmitters >= maxGroanEmitters then
-                            local emitter = z.getEmitter and z:getEmitter()
-                            if emitter and emitter.stopAll then
-                                -- Stop non-essential idle moan loops on distant horde members
-                                if not z:isTargetVisible() then
-                                    emitter:stopSoundByName("ZombieMoan")
-                                    emitter:stopSoundByName("ZombieGroan")
-                                end
-                            end
-                        end
-                    else
-                        activeGroanEmitters = activeGroanEmitters + 1
-                    end
-                end
-            end
-        end
-    end
+    -- 1. Horde Groan & Footstep Concurrency Limiter
+    -- Native FMOD voice virtualization handles 3D spatial attenuation and channel stealing natively with 0 Lua/JNI overhead.
 
     -- 2. Anti-Clipping Combat Sound Stabilizer
     if antiClipping then

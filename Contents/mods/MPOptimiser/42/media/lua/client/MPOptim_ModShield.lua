@@ -65,52 +65,10 @@ end
 -- ============================================================================
 -- 2. Smart Log I/O Throttler (100% Error-Preserving)
 -- ============================================================================
--- Throttles rapid non-error disk spam from mod loops, but NEVER blocks errors/exceptions.
+-- 2. Smart Log I/O Throttler
+-- Native Kahlua print is preserved directly without table allocation or memory pressure.
 function MPOptim.ModShield.InitLogThrottler()
-MPOptim.ModShield.SanitizeFixingRecipes()
-    if print == MPOptim.ModShield.PrintHook then return end
-
-    print = function(...)
-        if not MPOptim.Config or not MPOptim.Config.Get("ModShield_Enabled") then
-            return raw_print(...)
-        end
-
-        local args = { ... }
-        local msg = ""
-        for i = 1, #args do
-            msg = msg .. tostring(args[i]) .. (i < #args and "	" or "")
-        end
-
-        local msgLower = string.lower(msg)
-
-        -- 100% ERROR PRESERVATION: If the message is an error, warning, traceback, or exception, print immediately!
-        if string.find(msgLower, "error") or string.find(msgLower, "exception") or
-           string.find(msgLower, "traceback") or string.find(msgLower, "warn") or
-           string.find(msgLower, "fail") or string.find(msgLower, "stack") or
-           string.find(msgLower, "crash") or string.find(msgLower, "missing") or
-           string.find(msgLower, "null") or string.find(msgLower, "nil") then
-            return raw_print(...)
-        end
-
-        -- For non-error informational logs (e.g. "[UW] Chequeo...", "[WP] Full sync"):
-        -- Rate-limit repeated strings to max once per 2 seconds to eliminate disk write locks.
-        local now = (getTimeInMillis and getTimeInMillis()) or 0
-        local lastTime = logHistory[msg] or 0
-
-        if now - lastTime > 2000 then
-            logHistory[msg] = now
-            if (suppressedCounts[msg] or 0) > 0 then
-                raw_print(string.format("[MPOptimiser Log Shield] (Suppressed %d repeated logs) %s", suppressedCounts[msg], msg))
-                suppressedCounts[msg] = 0
-            else
-                raw_print(...)
-            end
-        else
-            suppressedCounts[msg] = (suppressedCounts[msg] or 0) + 1
-        end
-    end
-
-    MPOptim.ModShield.PrintHook = print
+    MPOptim.ModShield.SanitizeFixingRecipes()
 end
 
 -- ============================================================================
@@ -150,13 +108,18 @@ MPOptim.ModShield.SanitizeFixingRecipes()
 Events.OnGameBoot.Add(function()
     MPOptim.ModShield.InitGCInterceptor()
     MPOptim.ModShield.InitLogThrottler()
-MPOptim.ModShield.SanitizeFixingRecipes()
+    MPOptim.ModShield.SanitizeFixingRecipes()
+    MPOptim.ModShield.InitPlumbingOptimizer()
+end)
+
+Events.OnGameStart.Add(function()
+    MPOptim.ModShield.InitPlumbingOptimizer()
 end)
 
 Events.OnMainMenuEnter.Add(function()
     MPOptim.ModShield.InitGCInterceptor()
     MPOptim.ModShield.InitLogThrottler()
-MPOptim.ModShield.SanitizeFixingRecipes()
+    MPOptim.ModShield.SanitizeFixingRecipes()
 end)
 
 -- ============================================================================
@@ -208,9 +171,3 @@ function MPOptim.ModShield.InitPlumbingOptimizer()
     end
 end
 
-Events.OnTick.Add(function()
-    plumbingTick = (plumbingTick + 1) % 60000
-    if (plumbingTick % 120) == 0 then
-        MPOptim.ModShield.InitPlumbingOptimizer()
-    end
-end)

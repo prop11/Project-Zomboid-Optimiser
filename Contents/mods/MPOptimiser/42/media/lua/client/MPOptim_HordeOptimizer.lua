@@ -173,15 +173,16 @@ function MPOptim.HordeOptimizer.Apply()
         IsoWater.isShaderEnable = enableCustomShaders
     end
 
-    -- 5. Build 42 Thread Safety Enforcer (Prevents Kahlua wrong-thread assertion crashes)
+    -- 5. Build 42 Multi-Threading Preservation (Ensure native background worker threads remain active)
+    -- Running pathfinding, lighting, sound, animation, and world loading on background threads eliminates main-thread periodic hitching.
     if DebugOptions and DebugOptions.instance and DebugOptions.instance.setBoolean then
-        DebugOptions.instance:setBoolean("Threading.Animation", false)
-        DebugOptions.instance:setBoolean("Threading.Sound", false)
-        DebugOptions.instance:setBoolean("Threading.Ambient", false)
-        DebugOptions.instance:setBoolean("Threading.Pathfinding", false)
-        DebugOptions.instance:setBoolean("Threading.RecalculateGridStacks", false)
-        DebugOptions.instance:setBoolean("Threading.Lighting", false)
-        DebugOptions.instance:setBoolean("Threading.World", false)
+        DebugOptions.instance:setBoolean("Threading.Animation", true)
+        DebugOptions.instance:setBoolean("Threading.Sound", true)
+        DebugOptions.instance:setBoolean("Threading.Ambient", true)
+        DebugOptions.instance:setBoolean("Threading.Pathfinding", true)
+        DebugOptions.instance:setBoolean("Threading.RecalculateGridStacks", true)
+        DebugOptions.instance:setBoolean("Threading.Lighting", true)
+        DebugOptions.instance:setBoolean("Threading.World", true)
     end
 
     -- 6. Dynamic Lighting Update Sync

@@ -1,0 +1,83 @@
+version=1
+title=Project Zomboid Optimiser
+tags=Build 41,Build 42,Performance,Optimization,Singleplayer,Multiplayer,Tools,Interface
+visibility=public
+description=[h1]Project Zomboid Optimiser[/h1]
+A comprehensive, zero-stutter performance and desync optimization suite engineered specifically for [b]Project Zomboid Build 42[/b] and [b]Build 41[/b]. Works seamlessly in [b]Singleplayer[/b], [b]Local Co-op[/b], and [b]Dedicated Multiplayer Servers[/b].
+
+[hr][/hr]
+
+[h2]Key Systems & Features[/h2]
+
+[b]1. Anti-Stutter Vehicle & Road Streaming Suite[/b]
+[list]
+[*] [b]Camera Auto-Zoom Protection:[/b] Prevents the game engine from forcing extreme 200% auto-zoom while driving, eliminating the 5x tile draw-call surge and restoring your on-foot zoom seamlessly upon exiting.
+[*] [b]Dynamic Lighting Scaling:[/b] Scales dynamic lighting updates to 15 FPS during high-speed travel to eliminate lighting thread CPU bottlenecks.
+[*] [b]Multi-Threaded Model Loading:[/b] Offloads 3D vehicle parts and clothing mesh initialization to background worker threads.
+[*] [b]Bandwidth Prioritization:[/b] Automatically suspends non-essential background sweeps while driving so 100% of disk I/O and CPU bandwidth goes to road chunk streaming.
+[*] [b]Pre-Drive Memory Purge:[/b] Frees accumulated RAM upon entering a vehicle so long road trips start with maximum memory headroom.
+[/list]
+
+[b]2. Smart Idle Memory & Garbage Collection Manager[/b]
+[list]
+[*] [b]Zero Combat/Driving Freezes:[/b] Completely blocks automated garbage collection during combat and vehicle travel.
+[*] [b]Configurable RAM Threshold:[/b] Only executes gentle background memory sweeps when RAM usage exceeds your chosen cutoff threshold (1200 MB to 4000 MB).
+[*] [b]Safe-State Gating:[/b] Sweeps only occur during safe, non-combat situations (sleeping, reading, or resting inside a safehouse).
+[*] [b]Instant Manual Purge:[/b] Includes a one-click manual memory purge button in the F10 control center.
+[/list]
+
+[b]3. Combat, Horde & Render Optimizations[/b]
+[list]
+[*] [b]Smart Blood Decal Stacking Cap:[/b] Caps overlapping transparent blood splats to 4 per tile, stopping GPU fill-rate overdraw lag during massive horde battles without sacrificing gore.
+[*] [b]Skeletal Mesh Animation Throttling:[/b] Dynamically limits the number of 3D zombies calculating full bone matrices per frame.
+[*] [b]Dead Corpse Shadow Culling:[/b] Disables dynamic 3D shadow projection on dead bodies, saving hundreds of draw calls in graveyard areas.
+[*] [b]VRAM Texture Compression Enforcer:[/b] Enforces texture compression in options.ini to cut VRAM footprint in half and prevent out-of-memory crashes.
+[/list]
+
+[b]4. Automated Corpse & World Debris Sweeper[/b]
+[list]
+[*] [b]Staggered Micro-Batched Execution:[/b] Processes cleanups on an 8-tile per tick queue with native multiplayer synchronization packets, causing zero server tick drops.
+[*] [b]Corpse Optimizer:[/b] Sweeps empty or junk zombie bodies based on your configured decay age and radius.
+[*] [b]Ground Debris Cleaner:[/b] Cleans spent bullet casings (Vanilla, Brita, VFE), empty cans, glass shards, cigarette butts, and fallen twigs.
+[*] [b]Guaranteed Loot & Base Protection:[/b] Player-built structures, safehouses, crates, vehicles, weapons, ammo, bags, keys, literature, and favorited items are strictly shielded from deletion.
+[/list]
+
+[b]5. Audio, Weather & Build 42 Livestock Tuning[/b]
+[list]
+[*] [b]Livestock Audio Emitter Cap:[/b] Caps overlapping animal sound loops in crowded Build 42 livestock pens.
+[*] [b]Animal Track Purger:[/b] Purges aged animal footprint entities outside your tracking radius to prevent savefile bloat.
+[*] [b]Weather Particle Optimizer:[/b] Optimizes storm rain particle density and puddle shader passes.
+[*] [b]Fire Scream Sound Limiter:[/b] Prevents sound crackling and audio mixer overflow during mass burning horde events.
+[/list]
+
+[b]6. In-Game Control Center & Live Diagnostics[/b]
+[list]
+[*] Press [b]F10[/b] anytime to open the full Control Center with dynamic resolution scaling.
+[*] [b]One-Click Maintenance Actions:[/b] Instant Memory Purge, Blood Decal Clean, Corpse Sweep, Ground Debris Clean, and Full Area Sweeps.
+[*] [b]Live Diagnostics HUD:[/b] Real-time overlay tracking FPS, Lua memory footprint, VRAM texture compression, and cleanup telemetry.
+[*] Full native [b]PZAPI Mod Options[/b] and right-click context menu integration.
+[/list]
+
+[hr][/hr]
+
+[h2]Multiplayer & Dedicated Server Compatibility[/h2]
+[list]
+[*] [b]Safehouse & Base Protection:[/b] Automatically detects and protects claimed multiplayer safehouses and player bases.
+[*] [b]Synchronized Admin Controls:[/b] Admins can configure settings server-wide and trigger synchronized area sweeps.
+[*] [b]Zero Desync:[/b] All operations use native engine synchronization packets.
+[/list]
+
+[hr][/hr]
+
+[h2]Controls[/h2]
+[list]
+[*] [b]F10[/b] : Open / Close Control Center
+[*] [b]Right-Click in World[/b] -> [b]Project Zomboid Optimiser[/b] for quick actions.
+[/list]
+
+[hr][/hr]
+
+[h2]Mod Details[/h2]
+[b]Mod ID:[/b] MPOptimizer
+[b]Compatibility:[/b] Project Zomboid Build 42 & Build 41 (Singleplayer, Co-op, Dedicated Server)
+[b]Translations Included:[/b] English, Spanish, French, German, Russian, Polish, Portuguese, Simplified Chinese

@@ -1,0 +1,1 @@
+float dommat4(mat4 a, mat4 b);

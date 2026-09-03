@@ -1,0 +1,33 @@
+{
+	"mainClass": "zombie/gameStates/MainScreenState",
+	"classpath": [
+		".",
+		"projectzomboid.jar"
+	],
+	"vmArgs": [
+		"-Djava.awt.headless=true",
+		"--enable-native-access=ALL-UNNAMED",
+		"--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED",
+		"-Xms2048m",
+		"-Xmx4096m",
+		"-Dzomboid.steam=1",
+		"-Dzomboid.znetlog=1",
+		"-Djava.library.path=win64/;.",
+		"-XX:-CreateCoredumpOnCrash",
+		"-XX:-OmitStackTraceInFastThrow",
+		"-XX:+UseNUMA",
+		"-XX:+AlwaysPreTouch"
+	],
+	"windows": {
+		"6.1": {
+			"vmArgs": [
+				"-XX:+UseG1GC"
+			]
+		},
+		"10.0.17134": {
+			"vmArgs": [
+				"-XX:+UseZGC"
+			]
+		}
+	}
+}

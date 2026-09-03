@@ -1,0 +1,26 @@
+﻿# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# IDE and Editor files
+.idea/
+.vscode/
+*.suo
+*.user
+*.sublime-workspace
+*.sublime-project
+
+# Temporary / Scratch / Log files
+*.log
+*.tmp
+*.bak
+*~
+
+# Local backups & Scratch directories
+*_BACKUP/
+*_backup/
+*.backup
+scratch/
+scratch_bin/

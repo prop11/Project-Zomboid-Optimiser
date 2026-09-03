@@ -661,11 +661,28 @@ function MPOptim.MainMenu.InjectButton()
         mainScreen:addChild(cpuBtnInstance)
     end
 
-    -- 3. GitHub Update Alert Button (Appears only when a newer release is detected)
-    local hasUpdate, latestVer, updateUrl = MPOptim.Utils.CheckGitHubUpdate and MPOptim.Utils.CheckGitHubUpdate()
-    local updateBtnY = (cpuBtnInstance and (cpuBtnInstance:getY() + btnH + math.floor(4 * scale))) or (agentStatusY + fontH + math.floor(4 * scale))
+    -- 3. Compact Bug & Crash Reporter Button (Placed directly under Engine Active text)
+    local bugBtnW = math.max(130, math.floor(150 * scale))
+    local bugBtnH = math.max(22, math.floor(fontH + 6 * scale))
+    local bugBtnX = btnX + math.floor((btnW - bugBtnW) / 2)
+    local bugBtnY = (cpuBtnInstance and (cpuBtnInstance:getY() + btnH + math.floor(4 * scale))) or (agentStatusY + fontH + math.floor(4 * scale))
 
-        local displayVer = latestVer and tostring(latestVer) or "0.4"
+    bugReportBtnInstance = ISButton:new(bugBtnX, bugBtnY, bugBtnW, bugBtnH, "Report Bug / Logs", nil, function()
+        if MPOptim.BugReporter and MPOptim.BugReporter.OpenModal then
+            MPOptim.BugReporter.OpenModal()
+        end
+    end)
+    bugReportBtnInstance:initialise()
+    bugReportBtnInstance.backgroundColor = { r = 0.28, g = 0.12, b = 0.12, a = 0.90 }
+    bugReportBtnInstance.borderColor = { r = 0.75, g = 0.32, b = 0.30, a = 0.95 }
+    bugReportBtnInstance.tooltip = "Encountering an issue or crash? Click to package your console.txt and pzo_engine.log diagnostics for GitHub."
+    mainScreen:addChild(bugReportBtnInstance)
+
+    -- 4. GitHub Update Alert Button (Appears only when a newer release is detected)
+    local hasUpdate, latestVer, updateUrl = MPOptim.Utils.CheckGitHubUpdate and MPOptim.Utils.CheckGitHubUpdate()
+    local updateBtnY = bugBtnY + bugBtnH + math.floor(4 * scale)
+
+    local displayVer = latestVer and tostring(latestVer) or "0.4"
     if string.sub(displayVer, 1, 1) ~= "v" and string.sub(displayVer, 1, 1) ~= "V" then
         displayVer = "v" .. displayVer
     end
@@ -689,26 +706,12 @@ function MPOptim.MainMenu.InjectButton()
     updateAlertBtn.tooltip = "A new version of the Project Zomboid Config & Engine Optimizer is available on GitHub! Click to open the download page."
     mainScreen:addChild(updateAlertBtn)
 
-    -- 4. Bottom Right Bug & Crash Reporter Button
-    local bugBtnX = sw - btnW - math.floor(24 * scale)
-    local bugBtnY = sh - btnH - math.floor(24 * scale)
-    bugReportBtnInstance = ISButton:new(bugBtnX, bugBtnY, btnW, btnH, "[[!]] Report Bug / Logs", nil, function()
-        if MPOptim.BugReporter and MPOptim.BugReporter.OpenModal then
-            MPOptim.BugReporter.OpenModal()
-        end
-    end)
-    bugReportBtnInstance:initialise()
-    bugReportBtnInstance.backgroundColor = { r = 0.32, g = 0.12, b = 0.12, a = 0.92 }
-    bugReportBtnInstance.borderColor = { r = 0.85, g = 0.35, b = 0.30, a = 1.0 }
-    bugReportBtnInstance.tooltip = "Encountering an issue or crash? Click to package your console.txt and pzo_engine.log diagnostics for GitHub."
-    mainScreen:addChild(bugReportBtnInstance)
-
     local isRootVisible = mainScreen.bottomPanel and mainScreen.bottomPanel:isVisible() == true
     menuBtnInstance:setVisible(isRootVisible)
     if agentStatusLabel then agentStatusLabel:setVisible(isRootVisible) end
     if cpuBtnInstance then cpuBtnInstance:setVisible(isRootVisible) end
-    if updateAlertBtn then updateAlertBtn:setVisible(isRootVisible and hasUpdate == true) end
     if bugReportBtnInstance then bugReportBtnInstance:setVisible(isRootVisible and (isAgent == true)) end
+    if updateAlertBtn then updateAlertBtn:setVisible(isRootVisible and hasUpdate == true) end
 
     local isFirst = MPOptim.MainMenu.ShowFirstLaunchModal()
     if not isFirst then

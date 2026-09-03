@@ -11,7 +11,6 @@ require "MPOptim_Utils"
 require "ISUI/ISPanel"
 require "ISUI/ISButton"
 require "ISUI/ISRichTextPanel"
-require "ISUI/ISPauseMenu"
 
 MPOptim = MPOptim or {}
 MPOptim.BugReporter = MPOptim.BugReporter or {}

@@ -28,6 +28,7 @@ Write-Host "====================================================================
 
 $ScriptDir = if ($env:PZO_GOG_DIR) { $env:PZO_GOG_DIR.TrimEnd('\') } else { $PWD.Path }
 $JarFileName    = "PZOptimEngine.jar"
+$NativeDllName  = "pzo_native64.dll"
 $TargetFileName = "ProjectZomboid64.json"
 $BackupFolder   = "Installer_Backups"
 $ZomboidDir     = Join-Path $HOME "Zomboid"
@@ -182,6 +183,26 @@ function Download-PZOGitHubJar($targetFile) {
         if (Test-Path -LiteralPath $targetFile -ErrorAction SilentlyContinue) {
             $sizeKB = [Math]::Round((Get-Item -LiteralPath $targetFile).Length / 1KB, 1)
             Write-Host "    [SUCCESS] Downloaded PZOptimEngine.jar ($sizeKB KB)" -ForegroundColor Green
+            return $true
+        }
+    } catch {
+        Write-Host "    [WARNING] Download error: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+    return $false
+}
+
+function Download-PZOGitHubDll($targetFile) {
+    $downloadUrl = "https://github.com/prop11/PZO-Launcher/releases/latest/download/pzo_native64.dll"
+    Write-Host "`n[*] Downloading latest pzo_native64.dll from GitHub Releases..." -ForegroundColor Cyan
+    Write-Host "    URL: $downloadUrl" -ForegroundColor Gray
+    try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
+        $webClient = New-Object System.Net.WebClient
+        $webClient.Headers.Add("User-Agent", "PZO-GOG-Installer")
+        $webClient.DownloadFile($downloadUrl, $targetFile)
+        if (Test-Path -LiteralPath $targetFile -ErrorAction SilentlyContinue) {
+            $sizeKB = [Math]::Round((Get-Item -LiteralPath $targetFile).Length / 1KB, 1)
+            Write-Host "    [SUCCESS] Downloaded pzo_native64.dll ($sizeKB KB)" -ForegroundColor Green
             return $true
         }
     } catch {
@@ -348,6 +369,7 @@ if ($choice -match "^[Yy]") {
     Write-Host "Target GOG Project Zomboid Directory: $InstallPath" -ForegroundColor Green
 
     $InstalledJarPath = Join-Path $InstallPath $JarFileName
+    $InstalledDllPath = Join-Path $InstallPath $NativeDllName
     $TargetFilePath   = Join-Path $InstallPath $TargetFileName
     $BackupDir        = Join-Path $InstallPath $BackupFolder
 
@@ -365,6 +387,15 @@ if ($choice -match "^[Yy]") {
             if (Test-Path -LiteralPath $InstalledJarPath) {
                 Remove-Item -LiteralPath $InstalledJarPath -Force
                 Write-Host "  Removed: $JarFileName" -ForegroundColor Green
+            }
+            if (Test-Path -LiteralPath $InstalledDllPath) {
+                Remove-Item -LiteralPath $InstalledDllPath -Force
+                Write-Host "  Removed: $NativeDllName" -ForegroundColor Green
+            }
+            $win64DllPath = Join-Path $InstallPath "win64\$NativeDllName"
+            if (Test-Path -LiteralPath $win64DllPath) {
+                Remove-Item -LiteralPath $win64DllPath -Force
+                Write-Host "  Removed: win64\$NativeDllName" -ForegroundColor Green
             }
             # Clean up status files
             $statusFile = Join-Path $ZomboidLuaDir "pzo_status.json"
@@ -417,6 +448,44 @@ if ($choice -match "^[Yy]") {
             Write-Host "[ERROR] Could not download PZOptimEngine.jar. Continuing with Lua mod only." -ForegroundColor Red
             return
         }
+    }
+
+    # Locate or Download Native DLL (pzo_native64.dll)
+    $candidateDlls = @(
+        (Join-Path $ScriptDir $NativeDllName),
+        (Join-Path $ScriptDir "dist\$NativeDllName"),
+        (Join-Path $ScriptDir "native\$NativeDllName"),
+        (Join-Path $PWD.Path $NativeDllName),
+        (Join-Path $PWD.Path "dist\$NativeDllName")
+    )
+    $SourceDll = $null
+    foreach ($cd in $candidateDlls) {
+        if ($cd -and (Test-Path -LiteralPath $cd)) {
+            $SourceDll = $cd
+            break
+        }
+    }
+
+    if ($SourceDll) {
+        Write-Host "Using local native governor: $SourceDll" -ForegroundColor Gray
+        Copy-Item -LiteralPath $SourceDll -Destination $InstalledDllPath -Force
+        Write-Host "Installed Native Governor: $NativeDllName -> $InstallPath" -ForegroundColor Green
+    } else {
+        $tempDll = Join-Path $env:TEMP "pzo_native64.dll"
+        if (Download-PZOGitHubDll $tempDll) {
+            Copy-Item -LiteralPath $tempDll -Destination $InstalledDllPath -Force
+            Remove-Item -LiteralPath $tempDll -Force -ErrorAction SilentlyContinue
+            Write-Host "Installed Native Governor: $NativeDllName -> $InstallPath" -ForegroundColor Green
+        } else {
+            Write-Host "[WARNING] Could not download pzo_native64.dll. Continuing with Java Engine only." -ForegroundColor Yellow
+        }
+    }
+
+    $win64Dir = Join-Path $InstallPath "win64"
+    if ((Test-Path -LiteralPath $win64Dir) -and (Test-Path -LiteralPath $InstalledDllPath)) {
+        $InstalledWin64Dll = Join-Path $win64Dir $NativeDllName
+        Copy-Item -LiteralPath $InstalledDllPath -Destination $InstalledWin64Dll -Force
+        Write-Host "Mirrored Native Governor -> $InstalledWin64Dll" -ForegroundColor Green
     }
 
     Apply-PZOGOGConfiguration $InstallPath $TargetFilePath $BackupDir $TargetFileName

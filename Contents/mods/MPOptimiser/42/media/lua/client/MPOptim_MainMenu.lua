@@ -172,15 +172,14 @@ function UpdateNotificationModal:createChildren()
     self.textBox.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
     self.textBox.borderColor = { r = 0, g = 0, b = 0, a = 0 }
     
-        local versionStr = tostring(MPOptim.Version or "1.4.0")
+        local versionStr = tostring(MPOptim.Version or "1.4.1")
     self.textBox.text = " <RGB:0.3,0.85,1.0> <SIZE:medium> Project Zomboid Optimiser Updated to v" .. versionStr .. "! <LINE> <LINE> " ..
         " <RGB:0.95,0.85,0.4> NOTE: The Project Zomboid Optimiser mod is 100% fully functional on its own! All Lua performance features (lag cleaners, texture preloading, vehicle collision smoothing, and HUD profiling) work immediately out-of-the-box in standard mode. The open-source PZO installer is an optional tool for players wanting additional performance enhancements. <LINE> <LINE> " ..
-        " <RGB:0.9,0.9,0.9> <SIZE:small> What is New in v1.4.0: <LINE> " ..
-        " <RGB:0.4,0.9,0.5> * Virtual Viewport Culling: Eliminates 8-10 FPS loot lag near massive floor piles (500+ items) via smart scroll clipping <LINE> " ..
-        " <RGB:0.4,0.9,0.5> * Water Pipes & Plumbing Throttler: Optimizes 60 Hz per-frame pipe flow & pump loops down to 1 Hz, cutting CPU load by 98% <LINE> " ..
-        " <RGB:0.4,0.9,0.5> * Proximity Loot Scan Debouncing: Throttles 3x3 surrounding floor scans when standing still looting <LINE> " ..
-        " <RGB:0.4,0.9,0.5> * Mod Profiler (Tab 8): Fixed live event listener scanning and Java ArrayList callback compatibility <LINE> " ..
-        " <RGB:0.4,0.9,0.5> * Optional PZO Engine Suite (v0.4): Build 42 Java 17 engine with GLState caching, fast horde separation & 1.0ms timer <LINE> <LINE> " ..
+        " <RGB:0.9,0.9,0.9> <SIZE:small> What is New in v1.4.1: <LINE> " ..
+        " <RGB:0.4,0.9,0.5> * High-Speed Vehicle Chunk Streaming Fix: Preserves vanilla road lookahead camera auto-zoom by default so chunks pre-load seamlessly without void borders when driving at maximum vehicle speed <LINE> " ..
+        " <RGB:0.4,0.9,0.5> * Instant Road Chunk Illumination: Unthrottled lighting updates during high-speed travel so newly streamed chunks are immediately lit with zero pop-in <LINE> " ..
+        " <RGB:0.4,0.9,0.5> * Dynamic Setting Restoration: Safe auto-zoom state recovery on foot and removal of runtime puddle shader mode overrides <LINE> " ..
+        " <RGB:0.4,0.9,0.5> * Automatic Config Migration: Existing user configurations automatically updated to ensure smooth high-speed highway streaming <LINE> <LINE> " ..
         " <RGB:0.85,0.85,0.85> Would you like to review and configure your Optimiser settings now? <LINE> " ..
         " <RGB:0.6,0.6,0.6> (You can adjust these at any time by pressing <RGB:1.0,0.8,0.2> F10 <RGB:0.6,0.6,0.6> in-game or via the main menu)." 
     self.textBox:paginate()

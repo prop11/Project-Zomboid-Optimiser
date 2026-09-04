@@ -8,7 +8,7 @@
 MPOptim = MPOptim or {}
 MPOptim.Config = MPOptim.Config or {}
 MPOptim.Config.Current = MPOptim.Config.Current or {}
-MPOptim.Version = "1.4.0"
+MPOptim.Version = "1.4.1"
 
 -- Default Configuration Table (Philosophy: High performance impact with ZERO/low visual gameplay degradation by default)
 MPOptim.DefaultConfig = {
@@ -122,9 +122,9 @@ MPOptim.DefaultConfig = {
 
     -- Vehicle & High-Speed Performance
     Vehicle_ChunkPriorityMode = true,
-    Vehicle_LimitDriveZoom = true,         -- Prevents extreme 200% camera auto-zoom surge while driving, restores on foot
+    Vehicle_LimitDriveZoom = false,        -- Default: false to preserve vanilla auto-zoom lookahead so chunks stream far ahead of vehicles
     Vehicle_PreDrivePurge = false,          -- Pre-drive memory sweep upon entering vehicle
-    Vehicle_ScaleLightingFPS = true,       -- Scales dynamic lighting rate during high-speed driving
+    Vehicle_ScaleLightingFPS = false,      -- Default: false so newly streamed chunks are lit promptly without lighting delay
     Vehicle_SpeedThreshold = 20,
     Vehicle_ThrottleRoadsideZombies = false,
     Vehicle_BoostImposterDistance = false,
@@ -291,9 +291,9 @@ MPOptim.Presets = {
     Plumbing_ThrottleWaterPipes = true,
     
         Vehicle_ChunkPriorityMode = true,
-        Vehicle_LimitDriveZoom = true,
+        Vehicle_LimitDriveZoom = false,
         Vehicle_PreDrivePurge = false,
-        Vehicle_ScaleLightingFPS = true,
+        Vehicle_ScaleLightingFPS = false,
         Vehicle_SpeedThreshold = 20,
         Vehicle_ThrottleRoadsideZombies = false,
         Vehicle_BoostImposterDistance = false,
@@ -391,9 +391,9 @@ MPOptim.Presets = {
     Plumbing_ThrottleWaterPipes = true,
         
         Vehicle_ChunkPriorityMode = true,
-        Vehicle_LimitDriveZoom = true,
+        Vehicle_LimitDriveZoom = false,
         Vehicle_PreDrivePurge = true,
-        Vehicle_ScaleLightingFPS = true,
+        Vehicle_ScaleLightingFPS = false,
         Vehicle_SpeedThreshold = 20,
         Vehicle_ThrottleRoadsideZombies = false,
         Vehicle_BoostImposterDistance = false,
@@ -491,9 +491,9 @@ MPOptim.Presets = {
     Plumbing_ThrottleWaterPipes = true,
         
         Vehicle_ChunkPriorityMode = true,
-        Vehicle_LimitDriveZoom = true,
+        Vehicle_LimitDriveZoom = false,
         Vehicle_PreDrivePurge = false,
-        Vehicle_ScaleLightingFPS = true,
+        Vehicle_ScaleLightingFPS = false,
         Vehicle_SpeedThreshold = 20,
         Vehicle_ThrottleRoadsideZombies = true,
         Vehicle_BoostImposterDistance = true,
@@ -633,9 +633,9 @@ MPOptim.Presets = {
     Plumbing_ThrottleWaterPipes = true,
     
         Vehicle_ChunkPriorityMode = true,
-        Vehicle_LimitDriveZoom = true,
+        Vehicle_LimitDriveZoom = false,
         Vehicle_PreDrivePurge = false,
-        Vehicle_ScaleLightingFPS = true,
+        Vehicle_ScaleLightingFPS = false,
         Vehicle_SpeedThreshold = 20,
         Vehicle_ThrottleRoadsideZombies = false,
         Vehicle_BoostImposterDistance = false,
@@ -801,6 +801,15 @@ function MPOptim.Config.Load()
         line = reader:readLine()
     end
     reader:close()
+
+    -- One-time migration: reset Vehicle_LimitDriveZoom and Vehicle_ScaleLightingFPS to false
+    -- so existing users immediately get vanilla road chunk lookahead without outrunning chunk loading at max speed.
+    local lastSeen = MPOptim.Config.Current["LastSeenVersion"] or "0.0.0"
+    if lastSeen == "0.0.0" or lastSeen == "1.4.0" then
+        MPOptim.Config.Current["Vehicle_LimitDriveZoom"] = false
+        MPOptim.Config.Current["Vehicle_ScaleLightingFPS"] = false
+    end
+
     return true
 end
 

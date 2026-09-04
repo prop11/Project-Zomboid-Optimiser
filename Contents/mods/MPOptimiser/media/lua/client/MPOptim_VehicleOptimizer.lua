@@ -69,8 +69,10 @@ function MPOptim.VehicleOptimizer.Update()
                 collectgarbage("step", 250)
             end
 
-            -- Prevent extreme 200% camera auto-zoom from quadrupling visible draw calls
-            if MPOptim.Config.Get("Vehicle_LimitDriveZoom") ~= false and getCore then
+            -- Camera Auto-Zoom Limiter is strictly OPT-IN (Default: false)
+            -- By keeping Auto-Zoom enabled, vanilla PZ expands camera lookahead and
+            -- IsoChunkMap pre-streams chunks well ahead of high-speed vehicles.
+            if MPOptim.Config.Get("Vehicle_LimitDriveZoom") == true and getCore then
                 local core = getCore()
                 local playerNum = (player.getPlayerNum and player:getPlayerNum()) or 0
                 if core and core.getAutoZoom and core.setAutoZoom then
@@ -85,6 +87,17 @@ function MPOptim.VehicleOptimizer.Update()
             end
         end
 
+        -- If the user turned OFF Vehicle_LimitDriveZoom while inside the vehicle, restore AutoZoom immediately
+        if autoZoomWasDisabled and MPOptim.Config.Get("Vehicle_LimitDriveZoom") ~= true and getCore then
+            local core = getCore()
+            local playerNum = (player.getPlayerNum and player:getPlayerNum()) or 0
+            if core and core.setAutoZoom and savedAutoZoom ~= nil then
+                core:setAutoZoom(playerNum, savedAutoZoom)
+            end
+            autoZoomWasDisabled = false
+            savedAutoZoom = nil
+        end
+
         local speed = math.abs((vehicle.getCurrentSpeedKmHour and vehicle:getCurrentSpeedKmHour()) or 0)
         local speedThreshold = (MPOptim.Config and MPOptim.Config.Get("Vehicle_SpeedThreshold")) or 35
         local stopThreshold = math.max(10, speedThreshold - 15) -- Generous hysteresis buffer prevents rapid toggling
@@ -97,8 +110,8 @@ function MPOptim.VehicleOptimizer.Update()
             if fastStreak >= 3 and not isDrivingFast then
                 isDrivingFast = true
 
-                -- 1. Scale Dynamic Lighting Rate While Driving (Preserves high-refresh smoothness)
-                if MPOptim.Config.Get("Vehicle_ScaleLightingFPS") ~= false and PerformanceSettings then
+                -- 1. Scale Dynamic Lighting Rate While Driving (Strictly opt-in: keep false to prevent unlit chunk delay)
+                if MPOptim.Config.Get("Vehicle_ScaleLightingFPS") == true and PerformanceSettings then
                     local curLightFPS = (PerformanceSettings.getLightingFPS and PerformanceSettings.getLightingFPS()) or PerformanceSettings.lightingFps or 60
                     local targetDrivingFPS = math.max(30, math.floor(curLightFPS * 0.5))
                     if curLightFPS and curLightFPS > targetDrivingFPS then
@@ -107,14 +120,6 @@ function MPOptim.VehicleOptimizer.Update()
                             PerformanceSettings.setLightingFPS(targetDrivingFPS)
                         end
                         lightingWasThrottled = true
-                    end
-                end
-
-                -- Ground-Level Puddle Optimization while driving (perfPuddles = 2: Skips 31 vertical levels AND 8-neighbor lookups)
-                if getCore and getCore().getPerfPuddles and getCore().setPerfPuddles then
-                    local curPerf = getCore():getPerfPuddles()
-                    if curPerf < 2 then
-                        getCore():setPerfPuddles(2)
                     end
                 end
 

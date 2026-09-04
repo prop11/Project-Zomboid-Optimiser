@@ -1,4 +1,4 @@
-{
+﻿{
     "ContextMenu_MPOptim_Title": "Project Zomboid Optimiser",
     "UI_MPOptim_Title": "Project Zomboid Optimiser",
     "UI_ModOptions_MPOptimizer": "Project Zomboid Optimiser",
@@ -215,9 +215,9 @@
     "UI_MPOptim_Tooltip_Lighting_FPS": "Controls the target update framerate for dynamic lighting propagation. Lower values (15-30 FPS) save huge CPU cycles.",
     "UI_MPOptim_Tooltip_Vehicle_PhysicsSleep": "Puts stationary, empty parked vehicles into Bullet physics sleep mode to eliminate physics lag in car compounds & parking lots.",
     "UI_MPOptim_Tooltip_Vehicle_ChunkPriorityMode": "Prioritizes road chunk loading bandwidth and throttles non-essential systems while driving.",
-    "UI_MPOptim_Tooltip_Vehicle_LimitDriveZoom": "Prevents the engine from forcing extreme 200%% auto-zoom while driving to eliminate the 5x tile draw call surge, and seamlessly restores your auto-zoom setting on foot.",
+    "UI_MPOptim_Tooltip_Vehicle_LimitDriveZoom": "Limits camera auto-zoom while driving to reduce draw calls. Recommended: OFF to ensure camera expands road lookahead and chunks stream ahead of high-speed vehicles.",
     "UI_MPOptim_Tooltip_Vehicle_PreDrivePurge": "[OPT-IN] Performs a gentle incremental memory sweep upon entering a car so high-speed travel has maximum RAM headroom. Default: Off.",
-    "UI_MPOptim_Tooltip_Vehicle_ScaleLightingFPS": "Lowers dynamic lighting updates to 15 FPS during high-speed travel to prevent lighting thread bottlenecks.",
+    "UI_MPOptim_Tooltip_Vehicle_ScaleLightingFPS": "Scales dynamic lighting update rate during high-speed travel. Recommended: OFF so newly streamed road chunks are lit promptly without lighting lag.",
     "UI_MPOptim_Tooltip_Vehicle_SuspendBackgroundCleanups": "Temporarily pauses tile sweeps, corpse checks, and RAM purges while driving for smooth road loading.",
     "UI_MPOptim_Tooltip_Vehicle_ThreadedModelSlots": "Offloads 3D vehicle parts and clothing loading to background threads instead of freezing the render loop.",
     "UI_MPOptim_Tooltip_Vehicle_SpeedThreshold": "Driving speed in km/h required to trigger high-speed chunk streaming prioritization.",

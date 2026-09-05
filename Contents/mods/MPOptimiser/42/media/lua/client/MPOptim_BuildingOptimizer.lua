@@ -51,6 +51,14 @@ function MPOptim.BuildingOptimizer.Update()
     local player = getPlayer and getPlayer()
     if not player then return end
 
+    -- Vehicles are always exterior and travel at high speeds: skip building interior scan
+    if player.getVehicle and player:getVehicle() then
+        if wasCulled then
+            MPOptim.BuildingOptimizer.Restore()
+        end
+        return
+    end
+
     local currentSquare = player.getCurrentSquare and player:getCurrentSquare()
     if not currentSquare then return end
 

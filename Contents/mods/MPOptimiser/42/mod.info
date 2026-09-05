@@ -5,6 +5,6 @@ authors=prop11
 poster=poster.png
 icon=icon.png
 versionMin=42.0.0
-modversion=1.4.1
+modversion=1.4.2
 description=Author: prop11 <LINE> <LINE> Comprehensive performance and desync optimization suite for Project Zomboid Build 42 & 41 (Singleplayer and Multiplayer). Features anti-stutter vehicle road streaming, smart idle memory management, blood decal stacking caps, corpse and ground debris sweeps with base protection, livestock audio caps, and an in-game F10 control center.
 tags=Build 42;Performance;Optimization;FPS;Multiplayer;Singleplayer;Cleanup;Tools

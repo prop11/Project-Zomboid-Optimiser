@@ -173,15 +173,18 @@ function MPOptim.HordeOptimizer.Apply()
         IsoWater.isShaderEnable = enableCustomShaders
     end
 
-    -- 5. Build 42 Thread Safety Enforcer (Prevents Kahlua single-threaded assertion crashes during timed actions)
+    -- 5. Build 42 Thread Safety & Asynchronous Pipeline Enforcer
+    -- Threading.Animation MUST be false to prevent Kahlua worker thread assertion crashes during timed actions.
+    -- All other native subsystems (World, Lighting, GridStacks, Sound, Ambient, Pathfinding) are thread-safe C++/Java worker tasks
+    -- and MUST remain true to prevent cell entry hitching, black roads, and chunk streaming bottlenecks.
     if DebugOptions and DebugOptions.instance and DebugOptions.instance.setBoolean then
         DebugOptions.instance:setBoolean("Threading.Animation", false)
-        DebugOptions.instance:setBoolean("Threading.Sound", false)
-        DebugOptions.instance:setBoolean("Threading.Ambient", false)
-        DebugOptions.instance:setBoolean("Threading.Pathfinding", false)
-        DebugOptions.instance:setBoolean("Threading.RecalculateGridStacks", false)
-        DebugOptions.instance:setBoolean("Threading.Lighting", false)
-        DebugOptions.instance:setBoolean("Threading.World", false)
+        DebugOptions.instance:setBoolean("Threading.Sound", true)
+        DebugOptions.instance:setBoolean("Threading.Ambient", true)
+        DebugOptions.instance:setBoolean("Threading.Pathfinding", true)
+        DebugOptions.instance:setBoolean("Threading.RecalculateGridStacks", true)
+        DebugOptions.instance:setBoolean("Threading.Lighting", true)
+        DebugOptions.instance:setBoolean("Threading.World", true)
     end
 
     -- 6. Dynamic Lighting Update Sync

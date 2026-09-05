@@ -8,7 +8,7 @@
 MPOptim = MPOptim or {}
 MPOptim.Config = MPOptim.Config or {}
 MPOptim.Config.Current = MPOptim.Config.Current or {}
-MPOptim.Version = "1.4.1"
+MPOptim.Version = "1.4.2"
 
 -- Default Configuration Table (Philosophy: High performance impact with ZERO/low visual gameplay degradation by default)
 MPOptim.DefaultConfig = {
@@ -805,7 +805,7 @@ function MPOptim.Config.Load()
     -- One-time migration: reset Vehicle_LimitDriveZoom and Vehicle_ScaleLightingFPS to false
     -- so existing users immediately get vanilla road chunk lookahead without outrunning chunk loading at max speed.
     local lastSeen = MPOptim.Config.Current["LastSeenVersion"] or "0.0.0"
-    if lastSeen == "0.0.0" or lastSeen == "1.4.0" then
+    if lastSeen == "0.0.0" or lastSeen == "1.4.0" or lastSeen == "1.4.1" then
         MPOptim.Config.Current["Vehicle_LimitDriveZoom"] = false
         MPOptim.Config.Current["Vehicle_ScaleLightingFPS"] = false
     end

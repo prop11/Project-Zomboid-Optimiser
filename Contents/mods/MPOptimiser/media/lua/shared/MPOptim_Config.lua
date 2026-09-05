@@ -8,7 +8,7 @@
 MPOptim = MPOptim or {}
 MPOptim.Config = MPOptim.Config or {}
 MPOptim.Config.Current = MPOptim.Config.Current or {}
-MPOptim.Version = "1.4.2"
+MPOptim.Version = "1.4.3"
 
 -- Default Configuration Table (Philosophy: High performance impact with ZERO/low visual gameplay degradation by default)
 MPOptim.DefaultConfig = {

@@ -172,15 +172,15 @@ function UpdateNotificationModal:createChildren()
     self.textBox.backgroundColor = { r = 0, g = 0, b = 0, a = 0 }
     self.textBox.borderColor = { r = 0, g = 0, b = 0, a = 0 }
     
-        local versionStr = tostring(MPOptim.Version or "1.4.2")
+        local versionStr = tostring(MPOptim.Version or "1.4.3")
     self.textBox.text = " <RGB:0.3,0.85,1.0> <SIZE:medium> Project Zomboid Optimiser Updated to v" .. versionStr .. "! <LINE> <LINE> " ..
         " <RGB:0.95,0.85,0.4> NOTE: The Project Zomboid Optimiser mod is 100% fully functional on its own! All Lua performance features (lag cleaners, texture preloading, vehicle collision smoothing, and HUD profiling) work immediately out-of-the-box in standard mode. The open-source PZO installer is an optional tool for players wanting additional performance enhancements. <LINE> <LINE> " ..
-        " <RGB:0.9,0.9,0.9> <SIZE:small> What is New in v1.4.2: <LINE> " ..
-        " <RGB:0.4,0.9,0.5> * Zero-Stutter Cell Boundary Streaming: Restores asynchronous background tile grid stack recalculations (Threading.RecalculateGridStacks), eliminating freezes and 20-30 FPS drops when crossing cell boundaries <LINE> " ..
-        " <RGB:0.4,0.9,0.5> * Multi-Threaded Road & World Streaming Fix: Restores background world and lighting pipelines (Threading.World and Threading.Lighting), fixing black void roads and chunk delivery bottlenecks at speeds over 40-120+ km/h on dedicated and LAN servers <LINE> " ..
-        " <RGB:0.4,0.9,0.5> * Kahlua Thread Safety Maintained: Keeps animation execution safely on the main thread (Threading.Animation = false) to prevent timed action assertion crashes <LINE> " ..
-        " <RGB:0.4,0.9,0.5> * High-Speed Vehicle Occlusion Bypass: Bypasses building interior spatial scans while inside vehicles to eliminate per-tile movement overhead <LINE> " ..
-        " <RGB:0.4,0.9,0.5> * Automatic Configuration Migration: Ensures camera lookahead auto-zoom and unthrottled driving lighting are active for all users <LINE> <LINE> " ..
+        " <RGB:0.9,0.9,0.9> <SIZE:small> What is New in v1.4.3: <LINE> " ..
+        " <RGB:0.4,0.9,0.5> * Audio & Mod Thread Safety Fix: Disabled experimental multi-threaded audio (Threading.Sound and Threading.Ambient) to prevent FMOD TimSort race conditions (Index -2 out of bounds) when driving with DayZ Ambient Sound and other audio mods <LINE> " ..
+        " <RGB:0.4,0.9,0.5> * World Timer Thread Safety: Disabled Threading.World to prevent concurrent native FMOD emitter ticks during coop and player emitter updates <LINE> " ..
+        " <RGB:0.4,0.9,0.5> * Zero-Stutter Cell Boundary Streaming: Preserved asynchronous tile grid stack recalculations (Threading.RecalculateGridStacks), eliminating freezes and 20-30 FPS drops when crossing cell boundaries <LINE> " ..
+        " <RGB:0.4,0.9,0.5> * Asynchronous Lighting Maintained: Preserved background lighting updates for zero chunk pop-in <LINE> " ..
+        " <RGB:0.4,0.9,0.5> * Kahlua Thread Safety Maintained: Kept animation execution safely on the main thread (Threading.Animation = false) <LINE> <LINE> " ..
         " <RGB:0.85,0.85,0.85> Would you like to review and configure your Optimiser settings now? <LINE> " ..
         " <RGB:0.6,0.6,0.6> (You can adjust these at any time by pressing <RGB:1.0,0.8,0.2> F10 <RGB:0.6,0.6,0.6> in-game or via the main menu)." 
     self.textBox:paginate()

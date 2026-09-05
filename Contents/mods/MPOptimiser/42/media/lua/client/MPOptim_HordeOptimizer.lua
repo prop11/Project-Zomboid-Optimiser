@@ -175,16 +175,18 @@ function MPOptim.HordeOptimizer.Apply()
 
     -- 5. Build 42 Thread Safety & Asynchronous Pipeline Enforcer
     -- Threading.Animation MUST be false to prevent Kahlua worker thread assertion crashes during timed actions.
-    -- All other native subsystems (World, Lighting, GridStacks, Sound, Ambient, Pathfinding) are thread-safe C++/Java worker tasks
-    -- and MUST remain true to prevent cell entry hitching, black roads, and chunk streaming bottlenecks.
+    -- Threading.Sound and Threading.Ambient MUST be false: FMOD and ambient emitter collections are not thread-safe,
+    -- and cause TimSort race conditions (ArrayIndexOutOfBoundsException -2) when audio mods like DayZ Ambient play sounds while driving.
+    -- Threading.World MUST be false to prevent concurrent FMOD calls during player emitter cleanup.
+    -- Subsystems with dedicated thread safety (Lighting, GridStacks, Pathfinding) remain active.
     if DebugOptions and DebugOptions.instance and DebugOptions.instance.setBoolean then
         DebugOptions.instance:setBoolean("Threading.Animation", false)
-        DebugOptions.instance:setBoolean("Threading.Sound", true)
-        DebugOptions.instance:setBoolean("Threading.Ambient", true)
+        DebugOptions.instance:setBoolean("Threading.Sound", false)
+        DebugOptions.instance:setBoolean("Threading.Ambient", false)
+        DebugOptions.instance:setBoolean("Threading.World", false)
         DebugOptions.instance:setBoolean("Threading.Pathfinding", true)
         DebugOptions.instance:setBoolean("Threading.RecalculateGridStacks", true)
         DebugOptions.instance:setBoolean("Threading.Lighting", true)
-        DebugOptions.instance:setBoolean("Threading.World", true)
     end
 
     -- 6. Dynamic Lighting Update Sync

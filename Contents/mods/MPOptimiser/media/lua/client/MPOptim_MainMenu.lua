@@ -523,7 +523,7 @@ end
 -- ============================================================================
 local menuBtnInstance = nil
 local cpuBtnInstance = nil
-local agentStatusLabel = nil
+local pzoIconBtn = nil
 local updateAlertBtn = nil
 local bugReportBtnInstance = nil
 local isMainScreenHooked = false
@@ -538,33 +538,46 @@ local function hookMainScreenPrerender()
         local isRootVisible = (self.bottomPanel and self.bottomPanel:isVisible()) or false
         local isAgent = MPOptim.Utils and MPOptim.Utils.IsEngineAgentInjected and MPOptim.Utils.IsEngineAgentInjected()
 
+        local scale, fontH, sw, sh = MPOptim.Utils.GetUIScale()
+        local topMargin = math.floor(16 * scale)
+        local rightMargin = math.floor(16 * scale)
+        local iconSize = math.max(32, math.floor(fontH + 14 * scale))
+        local iconX = sw - iconSize - rightMargin
+        local iconY = topMargin
+        local btnW = math.max(160, math.floor(190 * scale))
+        local btnX = iconX - btnW - math.floor(8 * scale)
+
+        if pzoIconBtn then
+            if pzoIconBtn:getX() ~= iconX or pzoIconBtn:getY() ~= iconY then
+                pzoIconBtn:setX(iconX)
+                pzoIconBtn:setY(iconY)
+            end
+            if pzoIconBtn:isVisible() ~= isRootVisible then
+                pzoIconBtn:setVisible(isRootVisible)
+                if isRootVisible then pzoIconBtn:bringToTop() end
+            end
+            local expectedTooltip = isAgent and "PZO Engine Active" or "PZO Engine Inactive"
+            if pzoIconBtn.tooltip ~= expectedTooltip then
+                pzoIconBtn.tooltip = expectedTooltip
+                pzoIconBtn.borderColor = isAgent and { r = 0.25, g = 0.85, b = 0.45, a = 0.95 } or { r = 0.55, g = 0.55, b = 0.60, a = 0.80 }
+                pzoIconBtn.textureColor = isAgent and { r = 1.0, g = 1.0, b = 1.0, a = 1.0 } or { r = 0.70, g = 0.70, b = 0.75, a = 0.75 }
+            end
+        end
+
         if menuBtnInstance then
+            if menuBtnInstance:getX() ~= btnX or menuBtnInstance:getY() ~= iconY then
+                menuBtnInstance:setX(btnX)
+                menuBtnInstance:setY(iconY)
+            end
             if menuBtnInstance:isVisible() ~= isRootVisible then
                 menuBtnInstance:setVisible(isRootVisible)
                 if isRootVisible then menuBtnInstance:bringToTop() end
             end
         end
 
-        if agentStatusLabel then
-            if agentStatusLabel:isVisible() ~= isRootVisible then
-                agentStatusLabel:setVisible(isRootVisible)
-                if isRootVisible then agentStatusLabel:bringToTop() end
-            end
-            if isAgent then
-                agentStatusLabel.name = "[+] Engine Agent: ACTIVE"
-                agentStatusLabel.r = 0.30
-                agentStatusLabel.g = 0.90
-                agentStatusLabel.b = 0.45
-            else
-                agentStatusLabel.name = "[-] Engine Agent: Inactive (Optional)"
-                agentStatusLabel.r = 0.70
-                agentStatusLabel.g = 0.75
-                agentStatusLabel.b = 0.85
-            end
-        end
-
         if cpuBtnInstance then
             local shouldShowBtn = isRootVisible and (not isAgent)
+            if cpuBtnInstance:getX() ~= btnX then cpuBtnInstance:setX(btnX) end
             if cpuBtnInstance:isVisible() ~= shouldShowBtn then
                 cpuBtnInstance:setVisible(shouldShowBtn)
                 if shouldShowBtn then cpuBtnInstance:bringToTop() end
@@ -577,6 +590,7 @@ local function hookMainScreenPrerender()
                 hasUp, latestVer, upUrl = MPOptim.Utils.CheckGitHubUpdate()
             end
             local shouldShowUp = isRootVisible and isAgent and (hasUp == true)
+            if updateAlertBtn:getX() ~= btnX then updateAlertBtn:setX(btnX) end
             if updateAlertBtn:isVisible() ~= shouldShowUp then
                 updateAlertBtn:setVisible(shouldShowUp)
                 if shouldShowUp then updateAlertBtn:bringToTop() end
@@ -592,6 +606,9 @@ local function hookMainScreenPrerender()
 
         if bugReportBtnInstance then
             local shouldShowBug = isRootVisible and (isAgent == true)
+            local bugBtnW = math.max(130, math.floor(150 * scale))
+            local bugBtnX = btnX + math.floor((btnW - bugBtnW) / 2)
+            if bugReportBtnInstance:getX() ~= bugBtnX then bugReportBtnInstance:setX(bugBtnX) end
             if bugReportBtnInstance:isVisible() ~= shouldShowBug then
                 bugReportBtnInstance:setVisible(shouldShowBug)
                 if shouldShowBug then bugReportBtnInstance:bringToTop() end
@@ -609,21 +626,45 @@ function MPOptim.MainMenu.InjectButton()
     if menuBtnInstance and menuBtnInstance:getParent() == mainScreen then
         local isRootVisible = mainScreen.bottomPanel and mainScreen.bottomPanel:isVisible() == true
         menuBtnInstance:setVisible(isRootVisible)
-        if cpuBtnInstance then
-            cpuBtnInstance:setVisible(isRootVisible)
-        end
+        if pzoIconBtn then pzoIconBtn:setVisible(isRootVisible) end
+        if cpuBtnInstance then cpuBtnInstance:setVisible(isRootVisible) end
         return
     end
 
     local scale, fontH, sw, sh = MPOptim.Utils.GetUIScale()
+    local topMargin = math.floor(16 * scale)
+    local rightMargin = math.floor(16 * scale)
+    local iconSize = math.max(32, math.floor(fontH + 14 * scale))
+    local iconX = sw - iconSize - rightMargin
+    local iconY = topMargin
+
     local btnW = math.max(160, math.floor(190 * scale))
-    local btnH = math.max(30, math.floor(fontH + 12 * scale))
-    local btnGap = math.floor(6 * scale)
+    local btnH = iconSize
+    local btnX = iconX - btnW - math.floor(8 * scale)
+    local btnY = topMargin
 
-    local btnX = sw - btnW - math.floor(24 * scale)
-    local btnY = math.floor(24 * scale)
+    local isAgent = MPOptim.Utils and MPOptim.Utils.IsEngineAgentInjected and MPOptim.Utils.IsEngineAgentInjected()
 
-    -- 1. Main Optimiser Control Center Button (CTRL + Click toggles Developer Mode)
+    -- 1. Very Top-Right PZO Icon Button with Hover Tooltip
+    local iconTex = getTexture("media/ui/app.png") or getTexture("media/ui/pzo_icon.png") or getTexture("media/ui/app.ico") or getTexture("icon.png")
+    pzoIconBtn = ISButton:new(iconX, iconY, iconSize, iconSize, "", nil, function()
+        MPOptim.MainMenu.ShowEngineAgentModal()
+    end)
+    pzoIconBtn:initialise()
+    if iconTex then
+        pzoIconBtn:setImage(iconTex)
+        pzoIconBtn.forcedWidthImage = iconSize - 6
+        pzoIconBtn.forcedHeightImage = iconSize - 6
+    else
+        pzoIconBtn.title = "PZO"
+    end
+    pzoIconBtn.backgroundColor = { r = 0.08, g = 0.12, b = 0.18, a = 0.92 }
+    pzoIconBtn.borderColor = isAgent and { r = 0.25, g = 0.85, b = 0.45, a = 0.95 } or { r = 0.55, g = 0.55, b = 0.60, a = 0.80 }
+    pzoIconBtn.textureColor = isAgent and { r = 1.0, g = 1.0, b = 1.0, a = 1.0 } or { r = 0.70, g = 0.70, b = 0.75, a = 0.75 }
+    pzoIconBtn.tooltip = isAgent and "PZO Engine Active" or "PZO Engine Inactive"
+    mainScreen:addChild(pzoIconBtn)
+
+    -- 2. Main Optimiser Control Center Button (CTRL + Click toggles Developer Mode)
     menuBtnInstance = ISButton:new(btnX, btnY, btnW, btnH, "[*] OPTIMISER", nil, function()
         if isCtrlKeyDown and isCtrlKeyDown() then
             MPOptim.ToggleDevMode()
@@ -636,36 +677,22 @@ function MPOptim.MainMenu.InjectButton()
     menuBtnInstance.borderColor = { r = 0.25, g = 0.60, b = 0.95, a = 0.95 }
     mainScreen:addChild(menuBtnInstance)
 
-    -- 2. Engine Agent Status Badge & Get Injection Button
-    local isAgent = MPOptim.Utils and MPOptim.Utils.IsEngineAgentInjected and MPOptim.Utils.IsEngineAgentInjected()
-    local agentStatusY = btnY + btnH + math.floor(4 * scale)
-    local smallFont = (UIFont and UIFont.Small) or 0
+    -- 3. Optional Engine Enhancement Button (Shown only when Engine is inactive)
+    local getAgentY = btnY + btnH + math.floor(6 * scale)
+    cpuBtnInstance = ISButton:new(btnX, getAgentY, btnW, btnH, "[*] OPTIONAL ENGINE ENHANCEMENT", nil, function()
+        MPOptim.MainMenu.ShowEngineAgentModal()
+    end)
+    cpuBtnInstance:initialise()
+    cpuBtnInstance.backgroundColor = { r = 0.10, g = 0.25, b = 0.40, a = 0.92 }
+    cpuBtnInstance.borderColor = { r = 0.30, g = 0.70, b = 0.95, a = 0.95 }
+    cpuBtnInstance.tooltip = "The Lua mod is 100% fully functional on its own. Click to view the optional open-source PZO installer on GitHub for extra 8GB+ RAM allocation and JVM tuning."
+    mainScreen:addChild(cpuBtnInstance)
 
-    if isAgent then
-        agentStatusLabel = ISLabel:new(btnX + math.floor(btnW / 2), agentStatusY, fontH, "[+] Engine Agent: ACTIVE", 0.30, 0.90, 0.45, 1.0, smallFont, false)
-        agentStatusLabel:initialise()
-        mainScreen:addChild(agentStatusLabel)
-    else
-        agentStatusLabel = ISLabel:new(btnX + math.floor(btnW / 2), agentStatusY, fontH, "[-] Engine Agent: Inactive (Optional)", 0.70, 0.75, 0.85, 1.0, smallFont, false)
-        agentStatusLabel:initialise()
-        mainScreen:addChild(agentStatusLabel)
-
-        local getAgentY = agentStatusY + fontH + math.floor(4 * scale)
-        cpuBtnInstance = ISButton:new(btnX, getAgentY, btnW, btnH, "[*] OPTIONAL ENGINE ENHANCEMENT", nil, function()
-            MPOptim.MainMenu.ShowEngineAgentModal()
-        end)
-        cpuBtnInstance:initialise()
-        cpuBtnInstance.backgroundColor = { r = 0.10, g = 0.25, b = 0.40, a = 0.92 }
-        cpuBtnInstance.borderColor = { r = 0.30, g = 0.70, b = 0.95, a = 0.95 }
-        cpuBtnInstance.tooltip = "The Lua mod is 100% fully functional on its own. Click to view the optional open-source PZO installer on GitHub for extra 8GB+ RAM allocation and JVM tuning."
-        mainScreen:addChild(cpuBtnInstance)
-    end
-
-    -- 3. Compact Bug & Crash Reporter Button (Placed directly under Engine Active text)
+    -- 4. Compact Bug & Crash Reporter Button
     local bugBtnW = math.max(130, math.floor(150 * scale))
     local bugBtnH = math.max(22, math.floor(fontH + 6 * scale))
     local bugBtnX = btnX + math.floor((btnW - bugBtnW) / 2)
-    local bugBtnY = (cpuBtnInstance and (cpuBtnInstance:getY() + btnH + math.floor(4 * scale))) or (agentStatusY + fontH + math.floor(4 * scale))
+    local bugBtnY = btnY + btnH + math.floor(6 * scale)
 
     bugReportBtnInstance = ISButton:new(bugBtnX, bugBtnY, bugBtnW, bugBtnH, "Report Bug / Logs", nil, function()
         if MPOptim.BugReporter and MPOptim.BugReporter.OpenModal then
@@ -678,7 +705,7 @@ function MPOptim.MainMenu.InjectButton()
     bugReportBtnInstance.tooltip = "Encountering an issue or crash? Click to package your console.txt and pzo_engine.log diagnostics for GitHub."
     mainScreen:addChild(bugReportBtnInstance)
 
-    -- 4. GitHub Update Alert Button (Appears only when a newer release is detected)
+    -- 5. GitHub Update Alert Button (Appears only when a newer release is detected)
     local hasUpdate, latestVer, updateUrl = MPOptim.Utils.CheckGitHubUpdate and MPOptim.Utils.CheckGitHubUpdate()
     local updateBtnY = bugBtnY + bugBtnH + math.floor(4 * scale)
 
@@ -708,8 +735,8 @@ function MPOptim.MainMenu.InjectButton()
 
     local isRootVisible = mainScreen.bottomPanel and mainScreen.bottomPanel:isVisible() == true
     menuBtnInstance:setVisible(isRootVisible)
-    if agentStatusLabel then agentStatusLabel:setVisible(isRootVisible) end
-    if cpuBtnInstance then cpuBtnInstance:setVisible(isRootVisible) end
+    if pzoIconBtn then pzoIconBtn:setVisible(isRootVisible) end
+    if cpuBtnInstance then cpuBtnInstance:setVisible(isRootVisible and (not isAgent)) end
     if bugReportBtnInstance then bugReportBtnInstance:setVisible(isRootVisible and (isAgent == true)) end
     if updateAlertBtn then updateAlertBtn:setVisible(isRootVisible and hasUpdate == true) end
 

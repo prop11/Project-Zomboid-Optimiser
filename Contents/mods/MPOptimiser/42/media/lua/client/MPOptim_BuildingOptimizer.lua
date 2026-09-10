@@ -126,8 +126,8 @@ function MPOptim.BuildingOptimizer.Update()
 
     -- 3. Upper Floors (Z >= 2) Occlusion Clamping
     if pZ >= 2 then
-        local targetMinZ = nearStairs and math.max(0, pZ - 2) or math.max(0, pZ - 1)
-        local targetMaxZ = nearStairs and math.min(32, pZ + 2) or math.min(32, pZ + 1)
+        local targetMinZ = nearStairs and math.max(-32, pZ - 2) or math.max(-32, pZ - 1)
+        local targetMaxZ = nearStairs and math.min(31, pZ + 2) or math.min(31, pZ + 1)
 
         applyZRange(cell, targetMinZ, targetMaxZ)
         wasCulled = true
@@ -143,7 +143,7 @@ end
 function MPOptim.BuildingOptimizer.Restore()
     local cell = getCell and getCell()
     if cell then
-        applyZRange(cell, 0, 32)
+        applyZRange(cell, -32, 31)
     end
     wasCulled = false
     appliedMinZ = -1

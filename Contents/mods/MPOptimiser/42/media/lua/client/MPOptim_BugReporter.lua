@@ -3,7 +3,6 @@
     File: media/lua/client/MPOptim_BugReporter.lua
     Author: prop11
     Description: In-game Bug & Crash Reporter modal and launcher integration.
-                 Allows one-click copying of system diagnostics and opening logs folder for GitHub issue submissions.
 --]]
 
 require "MPOptim_Config"
@@ -15,9 +14,6 @@ require "ISUI/ISRichTextPanel"
 MPOptim = MPOptim or {}
 MPOptim.BugReporter = MPOptim.BugReporter or {}
 
--- ============================================================================
--- 1. Bug & Crash Report Modal Dialog
--- ============================================================================
 local BugReportModal = ISPanel:derive("MPOptim_BugReportModal")
 
 function BugReportModal:new(x, y, width, height)
@@ -177,9 +173,6 @@ function BugReportModal:prerender()
     end
 end
 
--- ============================================================================
--- 2. Open Bug Reporter Modal Helper
--- ============================================================================
 function MPOptim.BugReporter.OpenModal()
     local scale, fontH, sw, sh = MPOptim.Utils.GetUIScale()
     local winW = math.min(sw - 40, math.max(680, math.floor(740 * scale)))
@@ -194,9 +187,6 @@ function MPOptim.BugReporter.OpenModal()
     return modal
 end
 
--- ============================================================================
--- 3. Pause Screen (ISPauseMenu) Button Injection
--- ============================================================================
 local isPauseMenuHooked = false
 local function hookPauseMenu()
     if isPauseMenuHooked or not ISPauseMenu then return end

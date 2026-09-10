@@ -31,7 +31,6 @@ function MPOptim.ZoomLOD.Update()
     if curZoom >= 1.50 then
         if lastZoomState ~= "HIGH_ZOOM" then
             lastZoomState = "HIGH_ZOOM"
-            -- At high zoom-out, throttle distant skeletal blend passes to save thousands of sub-pixel draw calls
             if PerformanceSettings and PerformanceSettings.numberZombiesBlended ~= nil then
                 PerformanceSettings.numberZombiesBlended = 4
             end

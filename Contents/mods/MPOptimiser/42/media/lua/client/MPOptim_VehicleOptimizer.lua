@@ -60,7 +60,6 @@ function MPOptim.VehicleOptimizer.Update()
 
     local vehicle = player.getVehicle and player:getVehicle()
     if vehicle then
-        -- 1. Initial Vehicle Entry: Camera Zoom Protection
         if not wasInVehicle then
             wasInVehicle = true
 
@@ -110,7 +109,6 @@ function MPOptim.VehicleOptimizer.Update()
             if fastStreak >= 3 and not isDrivingFast then
                 isDrivingFast = true
 
-                -- 1. Scale Dynamic Lighting Rate While Driving (Strictly opt-in: keep false to prevent unlit chunk delay)
                 if MPOptim.Config.Get("Vehicle_ScaleLightingFPS") == true and PerformanceSettings then
                     local curLightFPS = (PerformanceSettings.getLightingFPS and PerformanceSettings.getLightingFPS()) or PerformanceSettings.lightingFps or 60
                     local targetDrivingFPS = math.max(30, math.floor(curLightFPS * 0.5))
@@ -123,20 +121,17 @@ function MPOptim.VehicleOptimizer.Update()
                     end
                 end
 
-                -- 2. Suspend background sweep queues so 100% CPU/disk I/O goes to road chunk streaming
                 if MPOptim.Config.Get("Vehicle_SuspendBackgroundCleanups") ~= false then
                     if MPOptim.StaggerQueue then
                         MPOptim.StaggerQueue.isSuspended = true
                     end
                 end
 
-                -- 3. Multi-Threaded 3D Model Slot Initialization (Build 42)
                 if MPOptim.Config.Get("Vehicle_ThreadedModelSlots") ~= false and DebugOptions and DebugOptions.instance then
                     local optModelInit = DebugOptions.instance.threadModelSlotInit
                     if optModelInit and optModelInit.setValue then optModelInit:setValue(true) end
                 end
 
-                -- 4. Roadside Zombie Mesh Skinning Throttle (Opt-in / Experimental)
                 if MPOptim.Config.Get("Vehicle_ThrottleRoadsideZombies") == true and PerformanceSettings then
                     local activePreset = MPOptim.Config.GetActivePresetName and MPOptim.Config.GetActivePresetName()
                     if activePreset == "Experimental" then
@@ -145,7 +140,6 @@ function MPOptim.VehicleOptimizer.Update()
                     end
                 end
 
-                -- 5. Force 2D Billboard Imposters on Road Chunks (Opt-in / Experimental)
                 if MPOptim.Config.Get("Vehicle_BoostImposterDistance") == true and DebugOptions and DebugOptions.instance then
                     local activePreset = MPOptim.Config.GetActivePresetName and MPOptim.Config.GetActivePresetName()
                     if activePreset == "Experimental" then

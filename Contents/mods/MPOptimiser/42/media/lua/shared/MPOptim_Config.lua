@@ -882,6 +882,5 @@ if Events.OnGameBoot then
     Events.OnGameBoot.Add(MPOptim.Config.SyncToEngine)
 end
 
--- Immediately load settings from disk on file load
 MPOptim.Config.Load()
 MPOptim.Config.SyncToEngine()

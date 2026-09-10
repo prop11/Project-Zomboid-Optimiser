@@ -9,9 +9,6 @@ require "MPOptim_Config"
 
 MPOptim = MPOptim or {}
 MPOptim.Utils = MPOptim.Utils or {}
--- ============================================================================
--- Localization & Translation Helper
--- ============================================================================
 function MPOptim.GetText(key, defaultVal)
     if getText and key then
         local txt = getText(key)
@@ -38,9 +35,6 @@ end
 MPOptim.Utils.GetText = MPOptim.GetText
 
 
--- ============================================================================
--- Audio Replacer & Sound Overhaul Mod Auto-Detection
--- ============================================================================
 local cachedAudioModDetected = nil
 
 function MPOptim.Utils.IsAudioReplacerActive()
@@ -52,7 +46,6 @@ function MPOptim.Utils.IsAudioReplacerActive()
     end
 
     cachedAudioModDetected = false
-        -- 1. Check active mod IDs for audio/sound/music/fmod mods
         if getActivatedMods then
             local mods = getActivatedMods()
             if mods and mods.size then
@@ -71,7 +64,6 @@ function MPOptim.Utils.IsAudioReplacerActive()
             end
         end
 
-        -- 2. Check global audio replacer tables & APIs
         if TrueMusic or TCMusic or RadioAPI or ISMusic or SoundReplacer then
             cachedAudioModDetected = true
             print("[MPOptimizer] TrueMusic / Audio Engine Overhaul Detected. Audio Passthrough Protection Active.")
@@ -81,7 +73,6 @@ function MPOptim.Utils.IsAudioReplacerActive()
     return cachedAudioModDetected
 end
 
--- Safe Universal Player Notification (B42 & B41 compatible)
 function MPOptim.Utils.Notify(player, text, force)
     if not player or not text then return end
     
@@ -113,20 +104,15 @@ function MPOptim.Utils.Notify(player, text, force)
     end
 end
 
--- ============================================================================
--- Universal Admin / In-Game Debug Mode Permission Checker (Build 42 & 41)
--- ============================================================================
 function MPOptim.Utils.IsAdmin(player)
     local isMP = isClient and isClient()
     if not isMP then return true end
 
-    -- 1. Check in-game debug mode or debug command line flag
     local isDebug = (getCore and getCore().getDebug and getCore():getDebug())
         or (Core and (Core.bDebug or Core.debug))
         or (isDebugEnabled and isDebugEnabled())
     if isDebug then return true end
 
-    -- 2. Check stats access capabilities
     if canSeePlayerStats and canSeePlayerStats() then return true end
     if canModifyPlayerStats and canModifyPlayerStats() then return true end
     if haveAccess and haveAccess("Admin") then return true end
@@ -134,7 +120,6 @@ function MPOptim.Utils.IsAdmin(player)
     player = player or (getSpecificPlayer and getSpecificPlayer(0)) or (getPlayer and getPlayer())
     if not player then return false end
 
-    -- 3. Check isAccessLevel method on player
     if player.isAccessLevel then
         if player:isAccessLevel("admin") or player:isAccessLevel("moderator")
            or player:isAccessLevel("overseer") or player:isAccessLevel("gm")
@@ -144,7 +129,6 @@ function MPOptim.Utils.IsAdmin(player)
         end
     end
 
-    -- 4. Check string getAccessLevel
     local accessLevel = (player.getAccessLevel and player:getAccessLevel()) or (getAccessLevel and getAccessLevel())
     if accessLevel then
         local lvl = string.lower(tostring(accessLevel))
@@ -154,7 +138,6 @@ function MPOptim.Utils.IsAdmin(player)
         end
     end
 
-    -- 5. Check role object (Build 42)
     if player.getRole and player:getRole() then
         local role = player:getRole()
         local roleName = (role.getName and string.lower(tostring(role:getName()))) or ""
@@ -167,9 +150,6 @@ function MPOptim.Utils.IsAdmin(player)
     return false
 end
 
--- ============================================================================
--- Engine Texture Compression Enforcer (Reduces GPU VRAM Overhead by 50%+)
--- ============================================================================
 function MPOptim.Utils.CheckAndEnforceTextureCompression()
     if not MPOptim.Config or not MPOptim.Config.Get("GFX_EnforceTextureCompression") then return end
     if not getCore then return end
@@ -200,9 +180,6 @@ if Events.OnPreMapLoad then
     Events.OnPreMapLoad.Add(MPOptim.Utils.CheckAndEnforceTextureCompression)
 end
 
--- ============================================================================
--- Real-Time Framerate & Memory Retrieval Engine
--- ============================================================================
 local cachedRamMb = "0.0 MB"
 local lastRamCheckTime = 0
 local rollingFps = 60
@@ -224,7 +201,6 @@ function MPOptim.Utils.UpdateFPSTracker()
 end
 
 function MPOptim.Utils.getFPS()
-    -- 1. Native Build 42/41 Game Engine Real-Time Average FPS
     if getAverageFPS then
         local avg = tonumber(getAverageFPS())
         if avg and avg > 0 then
@@ -232,7 +208,6 @@ function MPOptim.Utils.getFPS()
         end
     end
 
-    -- 2. Engine Alternate Spelling Fallback (getAverageFSP)
     if getAverageFSP then
         local avg = tonumber(getAverageFSP())
         if avg and avg > 0 then
@@ -240,7 +215,6 @@ function MPOptim.Utils.getFPS()
         end
     end
 
-    -- 3. Live Rolling Delta Frame Measurement (Matches Steam / GPU overlays)
     if rollingFps and type(rollingFps) == "number" and rollingFps > 0 then
         return rollingFps
     end
@@ -259,9 +233,6 @@ function MPOptim.Utils.formatMemoryMB()
     return cachedRamMb
 end
 
--- ============================================================================
--- High-DPI UI Sizing, Text Measurement & Word Wrapping Helpers
--- ============================================================================
 local cachedScale = nil
 local cachedFontH = 14
 local cachedSW = 1920
@@ -452,7 +423,6 @@ end
 function MPOptim.Utils.isBaseOrSafehouseProtected(square)
     if not square then return false end
 
-    -- 1. Multiplayer Safehouse Protection
     if MPOptim.Config.Get("Admin_ProtectSafehouses") then
         if SafeHouse and SafeHouse.getSafeHouse then
             local sh = SafeHouse.getSafeHouse(square)
@@ -460,7 +430,6 @@ function MPOptim.Utils.isBaseOrSafehouseProtected(square)
         end
     end
 
-    -- 2. Singleplayer Player Structure & Base Zone Protection
     if MPOptim.Config.Get("Base_ProtectPlayerStructures") then
         local radius = MPOptim.Config.Get("Base_ProtectionRadius") or 20
         if isNearProtectedBase(square:getX(), square:getY(), radius) then
@@ -487,7 +456,6 @@ function MPOptim.Utils.isCorpseEmpty(corpse)
     return (not items or items:size() == 0)
 end
 
--- Intelligent Corpse Filter: distinguishes empty, decomposed, junk-only, and valuable loot corpses
 function MPOptim.Utils.canCleanCorpse(corpse, options)
     if not corpse then return false end
     local opts = options or {}
@@ -497,7 +465,6 @@ function MPOptim.Utils.canCleanCorpse(corpse, options)
         return false
     end
 
-    -- 1. Check Deceased Age Threshold (Hours via IsoDeadBody.getDeathTime)
     -- Manual sweeps (isManual == true) always clean immediately regardless of age
     local minAge = (opts.isManual ~= true) and (opts.minAgeHours or (MPOptim.Config and MPOptim.Config.Get("Corpse_MinAgeHours")) or 0) or 0
     if minAge > 0 and getGameTime then
@@ -510,7 +477,6 @@ function MPOptim.Utils.canCleanCorpse(corpse, options)
         end
     end
 
-    -- 2. Check Skeletons & Burnt Ash Corpses (IsoDeadBody.isSkeleton / isAnimalSkeleton)
     local isSkeletonOrAsh = (corpse.isSkeleton and corpse:isSkeleton())
         or (corpse.isAnimalSkeleton and corpse:isAnimalSkeleton())
         or (corpse.isBurnt and corpse:isBurnt())
@@ -519,7 +485,6 @@ function MPOptim.Utils.canCleanCorpse(corpse, options)
         return true
     end
 
-    -- 3. Check Strictly Empty Corpses
     local container = corpse.getItemContainer and corpse:getItemContainer()
     if not container then return true end
     local items = container:getItems()
@@ -530,7 +495,6 @@ function MPOptim.Utils.canCleanCorpse(corpse, options)
         return false
     end
 
-    -- 4. Check Junk-Only Corpses (Clean corpses with only ruined vanilla clothes, keep weapons/bags/ammo/keys)
     if opts.cleanJunkOnly or (MPOptim.Config and MPOptim.Config.Get("Corpse_CleanJunkOnly")) then
         for i = 0, items:size() - 1 do
             local item = items:get(i)
@@ -555,7 +519,6 @@ function MPOptim.Utils.canCleanCorpse(corpse, options)
         return true -- Corpse only contains worthless worn clothes
     end
 
-    -- 5. If neither cleanEmptyOnly nor cleanJunkOnly is active, player wants ALL corpses purged (including corpses containing loot)
     if not opts.cleanEmptyOnly and not opts.cleanJunkOnly then
         return true
     end
@@ -571,13 +534,11 @@ function MPOptim.Utils.shouldPurgeWorldItem(worldItemObj)
     -- 1. Favorited items are 100% immune
     if item.isFavorite and item:isFavorite() then return false end
 
-    -- 2. Absolute Protected Categories (Containers, Drainables, Weapons, Clothing, Literature, Radios, Keys)
     local cat = item:getCategory()
     if cat and MPOptim.ProtectedCategories and MPOptim.ProtectedCategories[cat] then
         return false
     end
 
-    -- 3. Explicit Protected Items (Logs, Log Piles, Gas Cans, Generators, Tool Boxes, Kits)
     local fullType = item:getFullType()
     if not fullType then return false end
 
@@ -593,7 +554,6 @@ function MPOptim.Utils.shouldPurgeWorldItem(worldItemObj)
         return false
     end
 
-    -- 1. Casings (Supports vanilla & modded Brita, VFE, Firearms B41, Arsenal[26])
     if MPOptim.Config.Get("Debris_CleanCasings") then
         if (MPOptim.DebrisTypes and MPOptim.DebrisTypes.Casings and MPOptim.DebrisTypes.Casings[fullType])
            or string.find(lowerType, "casing") or string.find(lowerType, "shell")
@@ -602,7 +562,6 @@ function MPOptim.Utils.shouldPurgeWorldItem(worldItemObj)
         end
     end
 
-    -- 2. Trash & Empty Containers
     if MPOptim.Config.Get("Debris_CleanTrash") then
         if (MPOptim.DebrisTypes and MPOptim.DebrisTypes.Trash and MPOptim.DebrisTypes.Trash[fullType])
            or string.find(lowerType, "tin") or string.find(lowerType, "canempty")
@@ -614,7 +573,6 @@ function MPOptim.Utils.shouldPurgeWorldItem(worldItemObj)
         end
     end
 
-    -- 3. Ground Twigs, Tree Branches & Loose Stones
     if MPOptim.Config.Get("Debris_CleanTwigsAndWood") then
         if (MPOptim.DebrisTypes and MPOptim.DebrisTypes.TwigsAndWood and MPOptim.DebrisTypes.TwigsAndWood[fullType])
            or fullType == "Base.Twigs" or fullType == "Base.TreeBranch" or fullType == "Base.TreeBranch2"
@@ -623,7 +581,6 @@ function MPOptim.Utils.shouldPurgeWorldItem(worldItemObj)
         end
     end
 
-    -- 4. Broken Glass
     if MPOptim.Config.Get("Debris_CleanBrokenGlass") then
         if (MPOptim.DebrisTypes and MPOptim.DebrisTypes.Glass and MPOptim.DebrisTypes.Glass[fullType])
            or string.find(lowerType, "brokenglass") or string.find(lowerType, "glasswindowpiece")
@@ -632,7 +589,6 @@ function MPOptim.Utils.shouldPurgeWorldItem(worldItemObj)
         end
     end
 
-    -- 5. Expired / Rotten Food
     if MPOptim.Config.Get("Debris_CleanRottenFood") and item.IsFood and item:IsFood() then
         if item.isRotten and item:isRotten() then
             return true
@@ -642,10 +598,7 @@ function MPOptim.Utils.shouldPurgeWorldItem(worldItemObj)
     return false
 end
 
--- ============================================================================
--- Zero-Allocation Staggered Queue Engine
 -- Increments simple integers instead of allocating 60,000 table arrays
--- ============================================================================
 MPOptim.StaggerQueue = MPOptim.StaggerQueue or {
     jobs = {},
     active = false,
@@ -705,7 +658,6 @@ function MPOptim.StaggerQueue.OnTickSlice()
     while count < batchSize and job.curX <= job.maxX do
         local square = MPOptim.Utils.getSquare(job.curX, job.curY, job.z)
         if square and not MPOptim.Utils.isBaseOrSafehouseProtected(square) then
-            -- 1. Blood Cleanup (Precision check via IsoGridSquare.java)
             if job.options.cleanBlood then
                 local hasBlood = (square.haveBlood and square:haveBlood())
                     or (square.haveBloodFloor and square:haveBloodFloor())
@@ -733,7 +685,6 @@ function MPOptim.StaggerQueue.OnTickSlice()
                 end
             end
 
-            -- 2. Corpse Cleanup (Intelligent filtering)
             if job.options.cleanCorpses then
                 local deadBodys = square.getDeadBodys and square:getDeadBodys()
                 if deadBodys and deadBodys:size() > 0 then
@@ -749,7 +700,6 @@ function MPOptim.StaggerQueue.OnTickSlice()
                 end
             end
 
-            -- 3. World Debris / Ground Clutter Cleanup
             if job.options.cleanDebris then
                 local worldObjects = square.getWorldObjects and square:getWorldObjects()
                 if worldObjects and worldObjects:size() > 0 then
@@ -767,7 +717,6 @@ function MPOptim.StaggerQueue.OnTickSlice()
                 end
             end
 
-            -- 4. Corpse Flies Muter
             if square and square.hasFlies and square:hasFlies() then
                 if MPOptim.Config and MPOptim.Config.Get("Corpse_MuteFlies") then
                     if square.setHasFlies then
@@ -776,7 +725,6 @@ function MPOptim.StaggerQueue.OnTickSlice()
                 end
             end
 
-            -- 5. Blood Decal Stacking Cap (Non-destructive: keeps room bloody without GPU overdraw)
             if square and square.haveBloodFloor and square:haveBloodFloor() then
                 if MPOptim.Config and MPOptim.Config.Get("Blood_CapPerTile") and not job.options.cleanBlood then
                     local maxBlood = MPOptim.Config.Get("Blood_MaxPerTile") or MPOptim.Config.Get("Blood_MaxPerSquare") or 4
@@ -790,7 +738,6 @@ function MPOptim.StaggerQueue.OnTickSlice()
         job.processed = job.processed + 1
         count = count + 1
 
-        -- Advance coordinates
         job.curY = job.curY + 1
         if job.curY > job.maxY then
             job.curY = job.minY
@@ -815,27 +762,21 @@ function MPOptim.StaggerQueue.OnTickSlice()
     end
 end
 
--- ============================================================================
--- Central Master Heartbeat Engine (Zero-Allocation Staggered Logic Scheduler)
 -- Single coordinated OnTick dispatcher coordinating all optimization subsystems
--- ============================================================================
 local masterTick = 0
 
 local function onMasterHeartbeat()
     masterTick = masterTick + 1
 
 
-    -- 1. Active Stagger Queue (Processes micro-batches during active cleanups only)
     if MPOptim.StaggerQueue and MPOptim.StaggerQueue.active then
         MPOptim.StaggerQueue.OnTickSlice()
     end
 
-    -- 2. Combat Burst Smoothing (Runs ONLY if there are buffered death bursts to process)
     if MPOptim.CombatHordeSuite and MPOptim.CombatHordeSuite.HasPendingBursts and MPOptim.CombatHordeSuite.HasPendingBursts() then
         MPOptim.CombatHordeSuite.ProcessBurstQueue()
     end
 
-    -- 3. Staggered Subsystem Updates (Evenly spread to eliminate frame spikes)
     -- Background FPS Limiter (Every 30 ticks = ~0.5s)
     if masterTick % 30 == 5 then
         if MPOptim.FPSLimiter and MPOptim.FPSLimiter.Update then
@@ -908,12 +849,10 @@ local function readFileSafe(filename)
 end
 
 function MPOptim.Utils.GetOptimizedRAM()
-    -- 1. Direct global number variable (Fastest, zero allocation)
     if type(PZOEngineRAM) == "number" and PZOEngineRAM > 0 then
         return PZOEngineRAM
     end
 
-    -- 2. Direct Lua table fields
     if type(PZOEngine) == "table" and type(PZOEngine.ram_gb) == "number" and PZOEngine.ram_gb > 0 then
         return PZOEngine.ram_gb
     end
@@ -921,7 +860,6 @@ function MPOptim.Utils.GetOptimizedRAM()
         return PZOEngineBridge.ram_gb
     end
 
-    -- 3. Direct method call on table if present
     if type(PZOEngineBridge) == "table" and type(PZOEngineBridge.getOptimizedRAM) == "function" then
         local ram = PZOEngineBridge.getOptimizedRAM()
         if type(ram) == "number" and ram > 0 then
@@ -929,7 +867,6 @@ function MPOptim.Utils.GetOptimizedRAM()
         end
     end
 
-    -- 4. Disk status file fallback
     local content = readFileSafe("pzo_status.json")
     if content then
         local ram = string.match(content, '"ram_gb"%s*:%s*(%d+)')
@@ -941,12 +878,10 @@ function MPOptim.Utils.GetOptimizedRAM()
 end
 
 function MPOptim.Utils.IsEngineAgentInjected()
-    -- 1. Direct global boolean flags (0ms, 0 allocations)
     if PZOEngineActive == true or isPZOEngineActive == true then
         return true
     end
 
-    -- 2. Direct Lua table fields
     if type(PZOEngine) == "table" and PZOEngine.active == true then
         return true
     end
@@ -954,26 +889,22 @@ function MPOptim.Utils.IsEngineAgentInjected()
         return true
     end
 
-    -- 3. Direct method check on table
     if type(PZOEngineBridge) == "table" and type(PZOEngineBridge.isEnginePresent) == "function" then
         if PZOEngineBridge.isEnginePresent() == true then
             return true
         end
     end
 
-    -- 4. Disk status file fallback (for backwards compatibility)
     local content = readFileSafe("pzo_status.json")
     if content and (string.find(content, '"optimized"%s*:%s*true') or string.find(content, '"ram_gb"')) then
         return true
     end
 
-    -- 5. Fallback: Check live telemetry feed from background Java watchdog
     local contentTel = readFileSafe("pzo_telemetry.json") or readFileSafe("pzo_server_telemetry.json")
     if contentTel and (string.find(contentTel, '"max_mb"') or string.find(contentTel, '"gc_count"') or string.find(contentTel, '"used_mb"') or string.find(contentTel, '"server_optimized"')) then
         return true
     end
 
-    -- 6. Fallback: Check update bridge file
     local contentUp = readFileSafe("pzo_update.json")
     if contentUp and string.find(contentUp, '"current_version"') then
         return true
@@ -1004,12 +935,10 @@ end
 function MPOptim.Utils.OpenURL(url)
     if not url or url == "" then return false end
 
-    -- 1. Always copy to clipboard as guaranteed fallback
     if Clipboard and Clipboard.setClipboard then
         Clipboard.setClipboard(url)
     end
 
-    -- 2. Direct native OS browser launcher via PZOEngineBridge / PZOEntrypoint
     if type(PZOEngineBridge) == "table" and type(PZOEngineBridge.openBrowser) == "function" then
         PZOEngineBridge.openBrowser(url)
         return true

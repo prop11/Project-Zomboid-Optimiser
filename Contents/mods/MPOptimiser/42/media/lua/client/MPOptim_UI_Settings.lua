@@ -99,7 +99,6 @@ function MPOptim_SettingsUI:createChildren()
     local titleH = math.max(34, math.floor(fontH + 16 * scale))
     self.titleH = titleH
 
-    -- Close Button [X]
     local closeBtnW = math.max(28, math.floor(28 * scale))
     local closeBtnH = math.max(24, math.floor(fontH + 8 * scale))
     self.closeBtn = ISButton:new(winW - closeBtnW - math.floor(12 * scale), math.floor(6 * scale), closeBtnW, closeBtnH, "X", self, function(s)
@@ -111,7 +110,6 @@ function MPOptim_SettingsUI:createChildren()
     self.closeBtn.tooltip = MPOptim.GetText("UI_MPOptim_Tooltip_CloseBtn", "Close the Optimiser Control Center")
     self:addChild(self.closeBtn)
 
-    -- Preset Profiles Header (Dynamic MP Admin & Dev Mode detection)
     local inWorld = (getPlayer and getPlayer()) ~= nil
     local isMP = isClient and isClient()
     local player = inWorld and getPlayer()
@@ -192,7 +190,6 @@ function MPOptim_SettingsUI:createChildren()
         self:addChild(exitDevBtn)
     end
 
-    -- Navigation Tab Buttons (8 Tabs)
     local tabY = presetY + presetH + math.floor(10 * scale)
     local tabH = math.max(30, math.floor(fontH + 12 * scale))
     local tabMargin = math.floor(20 * scale)
@@ -228,7 +225,6 @@ function MPOptim_SettingsUI:createChildren()
         self:addChild(btn)
     end
 
-    -- Sub-Panel Container Dimensions
     local subX = tabMargin
     local subY = tabY + tabH + math.floor(8 * scale)
     local subW = winW - (tabMargin * 2)
@@ -238,7 +234,6 @@ function MPOptim_SettingsUI:createChildren()
     self.tickSpacing = math.max(28, math.floor(fontH + 12 * scale))
     local tickBoxH = math.max(20, math.floor(fontH + 6 * scale))
 
-    -- Reusable TickBox Creator with Hover Tooltips
     local function addTick(panel, y, text, configKey, onToggle, customX, customW, tooltipText)
         local bx = customX or math.floor(20 * scale)
         local bw = customW or (subW - math.floor(40 * scale))
@@ -263,7 +258,6 @@ function MPOptim_SettingsUI:createChildren()
         return box
     end
 
-    -- Reusable Value Tweaker / Stepper Creator with Hover Tooltips
     local function addStepper(panel, y, label, configKey, valuesList, formatFn, tooltipText)
         local stepperH = math.max(26, math.floor(fontH + 8 * scale))
         local btnW = math.max(28, math.floor(28 * scale))
@@ -362,7 +356,6 @@ function MPOptim_SettingsUI:createChildren()
         return stepperObj
     end
 
-    -- Helper function to guarantee robust Java UIElement scrolling with hardware stencil clipping
     local function makeScrollable(panel, targetContentHeight)
         panel.targetScrollHeight = targetContentHeight or panel.height
         panel:addScrollBars(false)
@@ -398,9 +391,6 @@ function MPOptim_SettingsUI:createChildren()
         end
     end
 
-    -- ========================================================================
-    -- TAB 1: QUICK ACTIONS & LIVE DIAGNOSTICS
-    -- ========================================================================
     self.panelTab1 = ISPanel:new(subX, subY, subW, subH)
     self.panelTab1:initialise()
     forwardFocus(self.panelTab1, self)
@@ -431,7 +421,6 @@ function MPOptim_SettingsUI:createChildren()
     self.purgeRamBtn.tooltip = MPOptim.GetText("UI_MPOptim_Tooltip_PurgeRAM", "Instantly forces a dual-pass garbage collection cycle to reclaim orphaned Lua tables, closures, and dead userdata.")
     self.panelTab1:addChild(self.purgeRamBtn)
 
-    -- Dynamic admin permissions managed via self:updateAdminPermissions()
 
     self.cleanBloodBtn = ISButton:new(startBtnX, startBtnY + (1 * btnSpacing), leftColW, btnH, MPOptim.GetText("UI_MPOptim_CleanBlood", "Clean Blood Decals in Radius"), self, function(s)
         if MPOptim.ClientCleaner then MPOptim.ClientCleaner.QuickClean("blood") end
@@ -469,13 +458,9 @@ function MPOptim_SettingsUI:createChildren()
     self.cleanAllBtn.tooltip = MPOptim.GetText("UI_MPOptim_Tooltip_CleanAll", "Performs an immediate all-in-one maintenance sweep (Blood + Corpses + Ground Debris + RAM Purge) in your local area.")
     self.panelTab1:addChild(self.cleanAllBtn)
 
-    -- ========================================================================
-    -- TAB 1: CUSTOM USER PRESET MANAGER (SAVE / LOAD / DELETE)
-    -- ========================================================================
     local presetSectionY = startBtnY + (5 * btnSpacing) + math.floor(8 * scale)
     local presetHeaderH = math.max(22, math.floor(fontH + 6 * scale))
 
-    -- Engine Agent Detection Indicator
     local isAgent = MPOptim.Utils and MPOptim.Utils.IsEngineAgentInjected and MPOptim.Utils.IsEngineAgentInjected()
     local agentText = isAgent and "[+] Engine Agent: ACTIVE (JVM Injected)" or "[-] Engine Agent: Inactive (Standard Lua Mode - Fully Functional)"
     local ar, ag, ab = 0.55, 0.60, 0.70
@@ -491,7 +476,6 @@ function MPOptim_SettingsUI:createChildren()
     local comboY = presetSectionY + presetHeaderH + math.floor(4 * scale)
     local comboH = math.max(26, math.floor(fontH + 8 * scale))
     self.presetCombo = ISComboBox:new(startBtnX, comboY, leftColW, comboH, self, function(target, box)
-        -- Selected preset changed
     end)
     self.presetCombo:initialise()
     self.presetCombo.backgroundColor = { r = 0.04, g = 0.07, b = 0.12, a = 0.95 }
@@ -533,13 +517,11 @@ function MPOptim_SettingsUI:createChildren()
     end
     self:refreshCustomPresets()
 
-    -- Preset Actions Row (Load, Save Current, Delete)
     local actRowY = comboY + comboH + math.floor(8 * scale)
     local actBtnH = math.max(28, math.floor(fontH + 10 * scale))
     local actSpacing = math.floor(6 * scale)
     local actBtnW = math.floor((leftColW - (actSpacing * 2)) / 3)
 
-    -- 1. Load Button
     local loadBtn = ISButton:new(startBtnX + (0 * (actBtnW + actSpacing)), actRowY, actBtnW, actBtnH, "[>] LOAD", self, function(s)
         local selName = getComboSelectedName(s.presetCombo)
         if selName and selName ~= "No Saved Presets" then
@@ -559,7 +541,6 @@ function MPOptim_SettingsUI:createChildren()
     loadBtn.tooltip = "Loads the selected custom preset profile and applies all configured optimization toggles immediately."
     self.panelTab1:addChild(loadBtn)
 
-    -- 2. Save Button
     local saveBtn = ISButton:new(startBtnX + (1 * (actBtnW + actSpacing)), actRowY, actBtnW, actBtnH, "[+] SAVE AS", self, function(s)
         local sw, sh = getCore():getScreenWidth(), getCore():getScreenHeight()
         local boxW = math.max(340, math.floor(380 * scale))
@@ -590,7 +571,6 @@ function MPOptim_SettingsUI:createChildren()
     saveBtn.tooltip = "Saves your current checkbox and slider settings into a new named preset profile."
     self.panelTab1:addChild(saveBtn)
 
-    -- 3. Delete Button
     local delBtn = ISButton:new(startBtnX + (2 * (actBtnW + actSpacing)), actRowY, actBtnW, actBtnH, "[X] DELETE", self, function(s)
         local selName = getComboSelectedName(s.presetCombo)
         if selName and selName ~= "No Saved Presets" then
@@ -610,7 +590,6 @@ function MPOptim_SettingsUI:createChildren()
     delBtn.tooltip = "Permanently deletes the selected custom preset profile."
     self.panelTab1:addChild(delBtn)
 
-    -- 4. Custom Shaders Quick Toggle with Warning Banner in Tab 1
     local shaderTickY = actRowY + actBtnH + math.floor(14 * scale)
     addTick(self.panelTab1, shaderTickY, MPOptim.GetText("UI_ModOptions_GFX_CustomShaders", "Enable Custom Shaders (GPU Boost)"), "GFX_CustomShaders", function(sel)
         if MPOptim.HordeOptimizer and MPOptim.HordeOptimizer.Apply then MPOptim.HordeOptimizer.Apply() end
@@ -621,7 +600,6 @@ function MPOptim_SettingsUI:createChildren()
     shaderWarnLabel:initialise()
     self.panelTab1:addChild(shaderWarnLabel)
 
-    -- 5. Server Sync Section (Syncs and persists client config to dedicated server disk)
     local syncY = shaderTickY + math.floor(45 * scale)
     local syncH = math.max(28, math.floor(fontH + 10 * scale))
     self.syncServerBtn = ISButton:new(startBtnX, syncY, leftColW, syncH, MPOptim.GetText("UI_MPOptim_SyncServer", "[#] SYNC SETTINGS TO SERVER"), self, function(s)
@@ -664,7 +642,6 @@ function MPOptim_SettingsUI:createChildren()
         local isMPAdmin = inWorld and isMP and MPOptim.Utils and MPOptim.Utils.IsAdmin and MPOptim.Utils.IsAdmin(player)
         local adminOnlyTip = MPOptim.GetText("UI_MPOptim_AdminOnlyTip", "Manual area cleanups in Multiplayer are restricted to Server Administrators.")
 
-        -- In Single Player / local host, player can use manual cleanup buttons freely
         local canClean = not isMP or isMPAdmin
 
         if s.cleanBloodBtn then
@@ -684,7 +661,6 @@ function MPOptim_SettingsUI:createChildren()
             s.cleanAllBtn.tooltip = canClean and MPOptim.GetText("UI_MPOptim_Tooltip_CleanAll", "Performs an immediate all-in-one maintenance sweep (Blood + Corpses + Ground Debris + RAM Purge) in your local area.") or adminOnlyTip
         end
 
-        -- Server Sync Button: STRICTLY visible only to Admins in an active Multiplayer session
         if s.syncServerBtn then
             s.syncServerBtn:setVisible(isMPAdmin == true)
             s.syncServerBtn:setEnable(isMPAdmin == true)
@@ -749,9 +725,6 @@ function MPOptim_SettingsUI:createChildren()
         end
     end
 
-    -- ========================================================================
-    -- TAB 2: GENERAL, ENGINE & GRAPHICS SUITE (2-Column Layout)
-    -- ========================================================================
     self.panelTab2 = ISPanel:new(subX, subY, subW, subH)
     self.panelTab2:initialise()
     forwardFocus(self.panelTab2, self)
@@ -764,7 +737,6 @@ function MPOptim_SettingsUI:createChildren()
     local col1X = math.floor(16 * scale)
     local col2X = col1X + colW + math.floor(16 * scale)
 
-    -- Left Column: Interface, Memory & Mod Shield (Slots 0 - 7)
     addTick(self.panelTab2, startOptY + (0 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_UI_ShowContextMenu", "Show in Right-Click Context Menu"), "UI_ShowContextMenu", nil, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_UI_ShowContextMenu", "Adds 'Project Zomboid Optimiser' options to right-click world menus for fast access."))
     addTick(self.panelTab2, startOptY + (1 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_UI_ShowHUD", "Show Diagnostics Overlay (FPS / RAM HUD)"), "UI_ShowHUD", function(sel)
         if MPOptim.SetHUDVisible then MPOptim.SetHUDVisible(sel) end
@@ -783,7 +755,6 @@ function MPOptim_SettingsUI:createChildren()
     end, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_GFX_BuildingInteriorCull", "Culls hidden lower floors and unviewable exterior ground tiles when inside multi-story buildings and skyscrapers. Automatically restores near windows & balconies."))
     addTick(self.panelTab2, startOptY + (7 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_UI_FastInventory", "Optimize Inventory & Large Item Lists"), "UI_FastInventory", nil, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_UI_FastInventory", "Accelerates inventory rendering and eliminates scrolling stutters in containers with 500+ items via tooltip throttling and bulk transfer debounce."))
 
-    -- Right Column: Character Mesh & Multi-Threading (Slots 0 - 7)
     addTick(self.panelTab2, startOptY + (0 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_GFX_ModelLighting", "3D Model Dynamic Vertex Lighting"), "GFX_ModelLighting", function(sel)
         if MPOptim.HordeOptimizer and MPOptim.HordeOptimizer.Apply then MPOptim.HordeOptimizer.Apply() end
     end, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_GFX_ModelLighting", "Uncheck in Potato Mode to shade character/zombie meshes with ambient room light rather than per-vertex dynamic point lights."))
@@ -809,7 +780,6 @@ function MPOptim_SettingsUI:createChildren()
         if MPOptim.HordeOptimizer and MPOptim.HordeOptimizer.Apply then MPOptim.HordeOptimizer.Apply() end
     end, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Threaded_Lighting", "[EXPERIMENTAL] Offloads real-time dynamic lighting and shadow propagation math to background worker threads. WARNING: May cause main-thread sync stalls during intense combat."))
 
-    -- Advanced Steppers Section (Tab 2)
     local stepY2 = startOptY + (8 * self.tickSpacing) + math.floor(14 * scale)
     local stepGap = math.max(36, math.floor(fontH + 16 * scale))
     addStepper(self.panelTab2, stepY2 + (0 * stepGap), MPOptim.GetText("UI_ModOptions_Lighting_FPS", "Dynamic Lighting Refresh Rate"), "Lighting_FPS", { 15, 20, 30, 45, 60 }, function(v) return tostring(v) .. " FPS" end, MPOptim.GetText("UI_MPOptim_Tooltip_Lighting_FPS", "Controls the target update framerate for dynamic lighting propagation. Lower values (15-30 FPS) save huge CPU cycles."))
@@ -817,9 +787,6 @@ function MPOptim_SettingsUI:createChildren()
 
     makeScrollable(self.panelTab2, stepY2 + (2 * stepGap) + math.floor(35 * scale))
 
-        -- ========================================================================
-    -- TAB 3: VEHICLES & ROAD STREAMING SUITE (Dedicated Vehicle Tab)
-    -- ========================================================================
     self.panelTab3 = ISPanel:new(subX, subY, subW, subH)
     self.panelTab3:initialise()
     forwardFocus(self.panelTab3, self)
@@ -827,7 +794,6 @@ function MPOptim_SettingsUI:createChildren()
     self.panelTab3.borderColor = { r = 0.18, g = 0.28, b = 0.44, a = 0.90 }
     self:addChild(self.panelTab3)
 
-    -- Left Column: Vehicle Streaming & Optimization Controls (Slots 0 - 6)
     addTick(self.panelTab3, startOptY + (0 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Vehicle_PhysicsSleep", "Parked Vehicle Physics Sleeping"), "Vehicle_PhysicsSleep", function(sel)
         if MPOptim.VehicleSleeper and MPOptim.VehicleSleeper.Update then MPOptim.VehicleSleeper.Update() end
     end, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Vehicle_PhysicsSleep", "Puts stationary, empty parked vehicles into Bullet physics sleep mode to eliminate physics lag in car compounds & parking lots."))
@@ -843,7 +809,6 @@ function MPOptim_SettingsUI:createChildren()
         end
     end, col1X + math.floor(15 * scale), colW - math.floor(15 * scale), MPOptim.GetText("UI_MPOptim_Tooltip_GFX_DynamicReflections", "Disabling eliminates secondary reflection passes on roads and puddles, curing Build 42 driving and rain stutter."))
 
-    -- Right Column: Roadside Entities & Swarm Enhancements (Slots 0 - 6)
     addTick(self.panelTab3, startOptY + (0 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Vehicle_ThrottleRoadsideZombies", "[EXPERIMENTAL] Throttle Roadside Zombie Mesh Skinning"), "Vehicle_ThrottleRoadsideZombies", nil, col2X + math.floor(15 * scale), colW - math.floor(15 * scale), MPOptim.GetText("UI_MPOptim_Tooltip_Vehicle_ThrottleRoadsideZombies", "[EXPERIMENTAL] Reduces zombie skeletal blending to 2-4 meshes when speeding past road entities to eliminate hitches on severe CPU bottlenecks."))
     addTick(self.panelTab3, startOptY + (1 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Vehicle_BoostImposterDistance", "[EXPERIMENTAL] Force 2D Billboard Imposters on Road Chunks"), "Vehicle_BoostImposterDistance", nil, col2X + math.floor(15 * scale), colW - math.floor(15 * scale), MPOptim.GetText("UI_MPOptim_Tooltip_Vehicle_BoostImposterDistance", "[EXPERIMENTAL] Renders newly streamed roadside zombies as lightweight 2D billboard imposters before 3D models load."))
     addTick(self.panelTab3, startOptY + (2 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Horde_ImposterRendering", "[EXPERIMENTAL] 2D Zombie Imposter Rendering (Horde Boost)"), "Horde_ImposterRendering", function(sel)
@@ -854,14 +819,10 @@ function MPOptim_SettingsUI:createChildren()
     addTick(self.panelTab3, startOptY + (5 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Horde_CullDistantAttachments", "Distant Zombie 3D Attachment & Accessory Culler"), "Horde_CullDistantAttachments", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Horde_CullDistantAttachments", "Suppresses tiny non-essential 3D cosmetic accessories on distant zombies in large 30+ swarms."))
     addTick(self.panelTab3, startOptY + (6 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Horde_StaggeredAITicking", "Staggered Swarm AI & Pathfinding Round-Robin"), "Horde_StaggeredAITicking", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Horde_StaggeredAITicking", "Staggers zombie A* navigation recalculations across a 4-phase round-robin cycle to drop swarm AI CPU load by 75 percent."))
 
-    -- Steppers Section (Tab 3)
     local stepY3 = startOptY + (8 * self.tickSpacing) + math.floor(14 * scale)
     addStepper(self.panelTab3, stepY3 + (0 * stepGap), MPOptim.GetText("UI_ModOptions_Vehicle_SpeedThreshold", "Streaming Activation Speed"), "Vehicle_SpeedThreshold", { 10, 15, 20, 25, 30, 40, 50 }, function(v) return tostring(v) .. " km/h" end, MPOptim.GetText("UI_MPOptim_Tooltip_Vehicle_SpeedThreshold", "Driving speed in km/h required to trigger high-speed chunk streaming prioritization."))
     makeScrollable(self.panelTab3, stepY3 + (1 * stepGap) + math.floor(35 * scale))
 
-    -- ========================================================================
-    -- TAB 4: BLOOD & CORPSES SUB-PANEL
-    -- ========================================================================
     self.panelTab4 = ISPanel:new(subX, subY, subW, subH)
     self.panelTab4:initialise()
     forwardFocus(self.panelTab4, self)
@@ -885,9 +846,6 @@ function MPOptim_SettingsUI:createChildren()
     addStepper(self.panelTab4, stepY4 + (4 * stepGap), MPOptim.GetText("UI_ModOptions_Corpse_IntervalHours", "Corpse Sweep Interval"), "Corpse_IntervalHours", { 1, 2, 4, 6, 12, 24 }, function(v) return tostring(v) .. " Hours" end, MPOptim.GetText("UI_MPOptim_Tooltip_Corpse_IntervalHours", "In-game hours between automated zombie corpse sweeps."))
     makeScrollable(self.panelTab4, stepY4 + (5 * stepGap) + math.floor(35 * scale))
 
-    -- ========================================================================
-    -- TAB 5: WORLD DEBRIS SUB-PANEL
-    -- ========================================================================
     self.panelTab5 = ISPanel:new(subX, subY, subW, subH)
     self.panelTab5:initialise()
     forwardFocus(self.panelTab5, self)
@@ -907,9 +865,6 @@ function MPOptim_SettingsUI:createChildren()
     addStepper(self.panelTab5, stepY5 + (1 * stepGap), MPOptim.GetText("UI_ModOptions_Debris_IntervalHours", "Debris Sweep Interval"), "Debris_IntervalHours", { 2, 4, 8, 12, 24, 48 }, function(v) return tostring(v) .. " Hours" end, MPOptim.GetText("UI_MPOptim_Tooltip_Debris_IntervalHours", "In-game hours between ground clutter and trash cleanup sweeps."))
     makeScrollable(self.panelTab5, stepY5 + (2 * stepGap) + math.floor(35 * scale))
 
-    -- ========================================================================
-    -- TAB 6: AUDIO, CLIMATE & BASE PROTECTION
-    -- ========================================================================
     self.panelTab6 = ISPanel:new(subX, subY, subW, subH)
     self.panelTab6:initialise()
     forwardFocus(self.panelTab6, self)
@@ -945,9 +900,6 @@ function MPOptim_SettingsUI:createChildren()
     addStepper(self.panelTab6, stepY6 + (3 * stepGap), MPOptim.GetText("UI_ModOptions_Admin_StaggerPerTick", "Micro-Batch Rate (Tiles / Tick)"), "Admin_StaggerPerTick", { 5, 10, 15, 20, 25, 35, 50 }, function(v) return tostring(v) .. " Tiles/Tick" end, MPOptim.GetText("UI_MPOptim_Tooltip_Admin_StaggerPerTick", "Number of tiles scanned per engine frame during background sweeps."))
     makeScrollable(self.panelTab6, stepY6 + (4 * stepGap) + math.floor(35 * scale))
 
-    -- ========================================================================
-    -- TAB 7: DEDICATED JVM ENGINE & HARDWARE OPTIMIZER SUITE
-    -- ========================================================================
     self.panelTab7 = ISPanel:new(subX, subY, subW, subH)
     self.panelTab7:initialise()
     forwardFocus(self.panelTab7, self)
@@ -994,7 +946,6 @@ function MPOptim_SettingsUI:createChildren()
         jvmBanner:addChild(getPzoBtn)
     end
 
-    -- Live Purge RAM Button when JVM is active
     if isJvmActive then
         local purgeJvmBtn = ISButton:new(jvmBanner.width - math.floor(190 * scale) - math.floor(12 * scale), math.floor(22 * scale), math.floor(190 * scale), math.floor(36 * scale), "[[!]] Force Clean JVM RAM", self, function(s)
             if type(PZOEngineBridge) == "table" and type(PZOEngineBridge.purgeRAM) == "function" then
@@ -1020,7 +971,6 @@ function MPOptim_SettingsUI:createChildren()
     local jvmPrefix = isJvmActive and "[+] " or "[LOCKED] "
     local jvmTipLock = isJvmActive and "" or " (Optional: Requires external PZO installer for 8GB+ RAM. The rest of the mod is 100% functional without this)."
 
-    -- Left Column (Slots 0 - 3)
     addTick(self.panelTab7, jvmControlsY + (0 * self.tickSpacing), jvmPrefix .. MPOptim.GetText("UI_ModOptions_JVM_ZeroStutterGC", "Zero-Stutter Background GC Mode"), "JVM_ZeroStutterGC", nil, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_ZeroStutterGC", "Eliminates in-game stop-the-world Lua garbage collection pauses during combat and driving by offloading memory management to background G1GC worker threads") .. jvmTipLock)
 
     addTick(self.panelTab7, jvmControlsY + (1 * self.tickSpacing), jvmPrefix .. MPOptim.GetText("UI_ModOptions_JVM_DeepChunkCache", "Deep RAM Chunk Cache (Zero Disk I/O Lag)"), "JVM_DeepChunkCache", nil, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_DeepChunkCache", "Keeps recently streamed road and town chunks cached in 8GB+ RAM to completely eliminate disk read stutters when turning around or retracing paths") .. jvmTipLock)
@@ -1029,7 +979,6 @@ function MPOptim_SettingsUI:createChildren()
 
     addTick(self.panelTab7, jvmControlsY + (3 * self.tickSpacing), jvmPrefix .. MPOptim.GetText("UI_ModOptions_JVM_PowerShield", "CPU Power & P-Core Priority Shield"), "JVM_PowerShield", nil, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_PowerShield", "Locks Windows/Linux multimedia high-performance thread scheduling and prioritizes Performance Cores (P-Cores) over Efficiency Cores on Intel 12th-15th Gen and AMD X3D CPUs.") .. jvmTipLock)
 
-    -- Right Column (Slots 0 - 3)
     addTick(self.panelTab7, jvmControlsY + (0 * self.tickSpacing), jvmPrefix .. MPOptim.GetText("UI_ModOptions_JVM_AsyncModelCompile", "Asynchronous 3D Model Compilation"), "JVM_AsyncModelCompile", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_AsyncModelCompile", "Compiles character clothing, armor, and vehicle 3D textures across background CPU threads to eliminate equipment swap frame drops") .. jvmTipLock)
 
     addTick(self.panelTab7, jvmControlsY + (1 * self.tickSpacing), jvmPrefix .. MPOptim.GetText("UI_ModOptions_JVM_HordeHibernation", "Distant Horde Spatial Hibernation"), "JVM_HordeHibernation", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_HordeHibernation", "Hibernates distant off-screen zombie pathfinding and animation state in RAM buffers to save massive CPU cycles in mega-horde territory") .. jvmTipLock)
@@ -1038,7 +987,6 @@ function MPOptim_SettingsUI:createChildren()
 
     addTick(self.panelTab7, jvmControlsY + (3 * self.tickSpacing), jvmPrefix .. MPOptim.GetText("UI_ModOptions_JVM_StreamBufferBoost", "Direct NIO Vehicle Stream Buffers"), "JVM_StreamBufferBoost", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_StreamBufferBoost", "Enables 128KB page-aligned direct NIO memory stream buffers and ChunkBufferPool for stutter-free road chunk loading at 70+ mph.") .. jvmTipLock)
 
-    -- Attach click-interceptor for locked boxes to open modal when clicked
     if not isJvmActive then
         local jvmKeys = { "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_GLStateOptimizer", "JVM_PowerShield", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_KahluaGCPacer", "JVM_StreamBufferBoost" }
         for _, k in ipairs(jvmKeys) do
@@ -1057,15 +1005,11 @@ function MPOptim_SettingsUI:createChildren()
         end
     end
 
-    -- Advanced Steppers Section (Tab 7)
     local stepY7 = jvmControlsY + (4 * self.tickSpacing) + math.floor(14 * scale)
     addStepper(self.panelTab7, stepY7 + (0 * stepGap), "Deep Chunk RAM Cache Size", "JVM_ChunkCacheSize", { 250, 500, 750, 1000, 1500 }, function(v) return tostring(v) .. " Chunks" end, "Number of world chunks retained in RAM cache for instant zero-lag road streaming.")
     addStepper(self.panelTab7, stepY7 + (1 * stepGap), "JVM Heap Clean Threshold", "JVM_GCThresholdMB", { 4000, 6000, 8000, 10000, 12000 }, function(v) return tostring(v) .. " MB" end, "Target memory threshold before gentle background GC sweeps cycle.")
     makeScrollable(self.panelTab7, stepY7 + (2 * stepGap) + math.floor(35 * scale))
 
-    -- ========================================================================
-    -- TAB 8: MOD RESOURCE USAGE & PROFILER
-    -- ========================================================================
     self.panelTab8 = ISPanel:new(subX, subY, subW, subH)
     self.panelTab8:initialise()
     forwardFocus(self.panelTab8, self)
@@ -1136,7 +1080,6 @@ function MPOptim_SettingsUI:createChildren()
     self.reScanBtn.tooltip = MPOptim.GetText("UI_MPOptim_Tooltip_ReScanProfiler", "Scans the active Lua VM to measure memory tables and active event hooks for all mods.")
     self.panelTab8:addChild(self.reScanBtn)
 
-    -- Tab 7 Details Card Render
     self.panelTab8.render = function(p)
         if not p:isVisible() or not p.parent or p.parent.currentTab ~= 8 then return end
         ISPanel.render(p)
@@ -1146,11 +1089,9 @@ function MPOptim_SettingsUI:createChildren()
         local sc, fH = MPOptim.Utils.GetUIScale()
         local lineH = math.max(22, math.floor(fH + 8 * sc))
 
-        -- Header text
         local profSummary = (self.profilerData and string.format("Active Mods: %d | Total Estimated Memory: %.1f MB", self.profilerData.totalMods, self.profilerData.totalMemoryMB)) or "Scanning..."
         p:drawText(profSummary, math.floor(200 * sc), math.floor(16 * sc), 0.35, 0.85, 1.0, 1.0, font)
 
-        -- Right Details Card
         local cardX = math.floor(16 * sc) + profilerLeftW + math.floor(16 * sc)
         local cardY = profilerListY
         local cardW = p.width - cardX - math.floor(16 * sc)
@@ -1191,9 +1132,6 @@ function MPOptim_SettingsUI:createChildren()
     end
 
 
-    -- ========================================================================
-    -- Bottom Bar: Reset Defaults & Save Buttons
-    -- ========================================================================
     local bBtnH = math.max(34, math.floor(fontH + 16 * scale))
     local bBtnW = math.floor(180 * scale)
     local bBtnY = winH - bBtnH - math.floor(14 * scale)
@@ -1457,7 +1395,6 @@ function MPOptim.OpenSettingsUI(forceRebuild)
     end
 
     if not inWorld and mainScreen then
-        -- Main Menu Hierarchy Mode (Child of MainScreen)
         if not settingsInstance then
             settingsInstance = MPOptim_SettingsUI:new(winX, winY, winW, winH)
             settingsInstance._builtWithDevMode = currentDevMode
@@ -1479,7 +1416,6 @@ function MPOptim.OpenSettingsUI(forceRebuild)
             settingsInstance:setVisible(true)
         end
     else
-        -- In-World HUD Mode (Top-level UIManager)
         if not settingsInstance then
             settingsInstance = MPOptim_SettingsUI:new(winX, winY, winW, winH)
             settingsInstance._builtWithDevMode = currentDevMode

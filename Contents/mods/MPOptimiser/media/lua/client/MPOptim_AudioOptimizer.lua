@@ -28,20 +28,14 @@ function MPOptim.AudioOptimizer.Update()
     local cell = getCell and getCell()
     if not cell then return end
 
-    -- 1. Horde Groan & Footstep Concurrency Limiter
-    -- Native FMOD voice virtualization handles 3D spatial attenuation and channel stealing natively with 0 Lua/JNI overhead.
 
-    -- 2. Anti-Clipping Combat Sound Stabilizer
     if antiClipping then
         local now = (getTimeInMillis and getTimeInMillis()) or 0
         if now - lastVoiceTick < 120 then
-            -- Throttling rapid audio frame clipping
         end
         lastVoiceTick = now
     end
 
-    -- 3. World Sound Queue Pruner
     if pruneQueue and WorldSoundManager and WorldSoundManager.instance then
-        -- Native WorldSound queue health check
     end
 end

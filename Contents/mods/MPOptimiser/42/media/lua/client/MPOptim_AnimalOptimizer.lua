@@ -19,7 +19,6 @@ function MPOptim.AnimalOptimizer.Update()
     local cell = getCell and getCell()
     if not cell then return end
 
-    -- Build 42 Animal list evaluation
     local animalList = cell.getAnimalList and cell:getAnimalList()
     if not animalList or animalList:size() == 0 then return end
 
@@ -35,7 +34,6 @@ function MPOptim.AnimalOptimizer.Update()
             local ax, ay = animal:getX(), animal:getY()
             local distSq = (ax - px) * (ax - px) + (ay - py) * (ay - py)
 
-            -- If animal is distant (> 35 tiles), throttle voice emitters
             if distSq > 1225 then
                 local emitter = animal.getEmitter and animal:getEmitter()
                 if emitter and emitter.stopAll then

@@ -2,7 +2,7 @@
     Project Zomboid Optimiser (Build 42 & 41)
     File: media/lua/client/MPOptim_GCOptimizer.lua
     Author: prop11
-    Description: Smart Idle Memory Manager. Enforces user-configured RAM cutoff thresholds and strictly limits automatic sweeps to safe idle states (sleeping, reading, resting, sitting).
+    Description: Smart Idle Memory Manager.
 --]]
 
 require "MPOptim_Config"
@@ -17,14 +17,12 @@ function MPOptim.GCOptimizer.Init()
     print("[MPOptimizer] Memory & Garbage Collection Manager Initialized.")
 end
 
--- Returns the actual system/game memory usage in Megabytes (MB)
 function MPOptim.GCOptimizer.GetCurrentMemoryMB()
     if getPerformanceLocal then
         local perf = getPerformanceLocal()
         if perf and perf["memory-used"] then
             local raw = tonumber(perf["memory-used"])
             if raw and raw > 0 then
-                -- PerformanceStatistic returns raw bytes: convert to MB (1024 * 1024 = 1048576)
                 if raw > 100000 then
                     return raw / 1048576.0
                 else
@@ -33,17 +31,14 @@ function MPOptim.GCOptimizer.GetCurrentMemoryMB()
             end
         end
     end
-    -- Fallback: Approximate from Lua VM footprint
     local luaKb = collectgarbage("count") or 0
     return (luaKb / 1024.0) * 35.0
 end
 
--- Full instant memory purge (invoked via F10 UI button or API)
 function MPOptim.GCOptimizer.PurgeMemory()
     local beforeKb = collectgarbage("count") or 0
     local beforeMB = MPOptim.GCOptimizer.GetCurrentMemoryMB()
 
-    -- Dual-pass Kahlua GC cycle to collect weak tables, metatables, closures and dead userdata
     collectgarbage("collect")
     collectgarbage("collect")
 
@@ -57,7 +52,6 @@ function MPOptim.GCOptimizer.PurgeMemory()
     if freedMb < 0.1 then
         freedMb = math.max(0.5, luaFreedMb)
     end
-    -- Sanity cap: a single Lua GC pass reclaims between 0.5 MB and 300 MB
     if freedMb > 500 then
         freedMb = math.max(0.5, luaFreedMb)
     end
@@ -68,7 +62,6 @@ function MPOptim.GCOptimizer.PurgeMemory()
     return freedMb
 end
 
--- Smart Idle GC: Strictly obeys user-configured GC_PurgeThresholdMB cutoff and safe non-combat states
 function MPOptim.GCOptimizer.Update()
     if not MPOptim.Config then return end
     if MPOptim.Config.Get("GC_AutoPurge") == false then return end
@@ -80,7 +73,6 @@ function MPOptim.GCOptimizer.Update()
     local now = (getTimeInMillis and getTimeInMillis()) or 0
     if now - lastIdleSweepTime < 90000 then return end -- Maximum once every 90 seconds
 
-    -- 1. Check User-Configured RAM Cutoff Threshold in MB
     local thresholdMB = (MPOptim.Config and MPOptim.Config.Get("GC_PurgeThresholdMB")) or 2800
     local currentMemMB = MPOptim.GCOptimizer.GetCurrentMemoryMB()
 
@@ -88,16 +80,12 @@ function MPOptim.GCOptimizer.Update()
         return -- Below threshold: skip GC entirely to eliminate micro-stutter
     end
 
-    -- 2. Strictly Verify Player is in an Idle / Passive State
-    -- BLOCK if in a vehicle (prevents driving freezes)
     if player.getVehicle and player:getVehicle() then return end
 
-    -- BLOCK if moving, aiming, or attacking
     if player.isPlayerMoving and player:isPlayerMoving() then return end
     if player.isAiming and player:isAiming() then return end
     if player.isAttacking and player:isAttacking() then return end
 
-    -- Only allow if explicitly sleeping, reading, resting, or sitting on ground
     local isSleeping = (player.isAsleep and player:isAsleep()) == true
     local isReading = (player.isReading and player:isReading()) == true
     local isResting = (player.isResting and player:isResting()) == true
@@ -108,7 +96,6 @@ function MPOptim.GCOptimizer.Update()
         return -- Active gameplay state: do not trigger GC
     end
 
-    -- 3. Check for Nearby Zombies within Danger Proximity (14 Tiles)
     local cell = getCell and getCell()
     local zList = cell and cell.getZombieList and cell:getZombieList()
     if zList and zList:size() > 0 then
@@ -121,7 +108,6 @@ function MPOptim.GCOptimizer.Update()
         end
     end
 
-    -- 4. Execute gentle incremental sweep only when ALL conditions are met
     lastIdleSweepTime = now
     local beforeKb = collectgarbage("count") or 0
     local beforeMB = currentMemMB

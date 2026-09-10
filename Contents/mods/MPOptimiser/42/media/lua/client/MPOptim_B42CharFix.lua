@@ -2,18 +2,15 @@
     Project Zomboid Optimiser - Build 42 Character Creation Preset Fix
     File: media/lua/client/MPOptim_B42CharFix.lua
     Author: prop11
-    Description: Fixes vanilla Build 42 (42.20.3) crash when loading/saving character presets.
-                 Safely ignores Build 41 to ensure 100% vanilla Build 41 character creation & 3D model rendering.
+    Description: Fixes vanilla Build 42 (42.
 --]]
 
--- Strict Build 42 Guard: Exit immediately if running on Build 41
 local ver = getCore and getCore().getVersionNumber and getCore():getVersionNumber() or ""
 local isB42 = ver:find("^42") or (IsoAnimals ~= nil)
 if not isB42 then
     return -- 100% untouched on Build 41
 end
 
--- Guard against missing BCRC
 if not BCRC or not BCRC.readSaveFile then
     return
 end
@@ -31,7 +28,6 @@ local function getObjectTypeName(obj)
 end
 
 if CharacterCreationProfession then
-    -- Patch loadBuild for Build 42
     CharacterCreationProfession.loadBuild = function(self, box)
         local prof = box.options[box.selected]
         if prof == nil then return end
@@ -47,7 +43,6 @@ if CharacterCreationProfession then
 
         self:resetBuild()
 
-        -- 1. Match Profession
         local targetProfName = traits[1]
         if self.listboxProf and self.listboxProf.items then
             for i = 1, #self.listboxProf.items do
@@ -61,7 +56,6 @@ if CharacterCreationProfession then
             end
         end
 
-        -- 2. Match Good Traits
         for j = 2, #traits do
             local targetTrait = traits[j]
             if targetTrait and targetTrait ~= "" and self.listboxTrait and self.listboxTrait.items then
@@ -79,7 +73,6 @@ if CharacterCreationProfession then
             end
         end
 
-        -- 3. Match Bad Traits
         for j = 2, #traits do
             local targetTrait = traits[j]
             if targetTrait and targetTrait ~= "" and self.listboxBadTrait and self.listboxBadTrait.items then
@@ -98,7 +91,6 @@ if CharacterCreationProfession then
         end
     end
 
-    -- Patch saveBuildStep2 for Build 42
     CharacterCreationProfession.saveBuildStep2 = function(self, button, joypadData, param2)
         if joypadData then
             joypadData.focus = self.presetPanel

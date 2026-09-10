@@ -132,7 +132,6 @@ function MPOptim_HUD:render()
     self:drawText(cachedRAMStr, padX, padY + (2 * lineH), 0.90, 0.90, 0.90, 1.0, font)
     self:drawText(cachedJvmStr, padX, padY + (3 * lineH), 0.35, 0.85, 1.0, 1.0, font)
 
-    -- Mini Frametime Graph
     local graphX = padX
     local graphY = padY + (4 * lineH) + math.floor(4 * scale)
     local graphW = self.width - (padX * 2)

@@ -14,7 +14,6 @@ MPOptim.HordeOptimizer = MPOptim.HordeOptimizer or {}
 function MPOptim.HordeOptimizer.Apply()
     if not MPOptim.Config then return end
 
-    -- 0. Combat Stutter Fix: Disable Build 42 Developer Animation Recording to Disk
     if AnimationPlayerRecorder then
         if AnimationPlayerRecorder.setAnimationRecorderMinRangeOfPlayer then
             AnimationPlayerRecorder.setAnimationRecorderMinRangeOfPlayer(0.0)
@@ -32,7 +31,6 @@ function MPOptim.HordeOptimizer.Apply()
         end
     end
 
-    -- 1. 2D Horde Billboard Imposter Rendering & GPU Mesh Instancing (Opt-In / Experimental)
     local enableImposters = MPOptim.Config.Get("Horde_ImposterRendering")
     if DebugOptions and DebugOptions.instance then
         local optImposter = DebugOptions.instance.zombieImposterRendering
@@ -63,7 +61,6 @@ function MPOptim.HordeOptimizer.Apply()
         end
     end
 
-    -- 2. Offscreen Zombie Skeletal Animation Throttling
     local enableOffscreenDelay = MPOptim.Config.Get("Horde_OffscreenAnimDelay")
     if DebugOptions and DebugOptions.instance then
         local optAnimDelay = DebugOptions.instance.zombieAnimationDelay
@@ -72,19 +69,15 @@ function MPOptim.HordeOptimizer.Apply()
         end
     end
 
-    -- 3. Dynamic PerformanceSettings Suite (Adjusted by Active Profile & Custom Config)
     if PerformanceSettings and PerformanceSettings.instance then
-        -- Hardware Fast Roof Hiding (Build 42)
         if PerformanceSettings.instance.setNewRoofHiding then
             PerformanceSettings.instance:setNewRoofHiding(true)
         end
 
-        -- Explicitly preserve animation interpolation for fluid, zero-latency combat response
         PerformanceSettings.interpolateAnims = true
 
         local activePreset = MPOptim.Config.GetActivePresetName and MPOptim.Config.GetActivePresetName()
 
-        -- Dynamic individual toggle overrides
         local throttleStatic = MPOptim.Config.Get("Horde_ThrottleStaticAnims") == true
         local accelFalloff = MPOptim.Config.Get("Horde_AccelerateAnimFalloff") == true
         local enableModelLighting = MPOptim.Config.Get("GFX_ModelLighting") ~= false
@@ -93,7 +86,6 @@ function MPOptim.HordeOptimizer.Apply()
         PerformanceSettings.zombieBonusFullspeedFalloff = accelFalloff and 1 or 4
         PerformanceSettings.modelLighting = enableModelLighting
 
-        -- Dynamic Road, Water & Puddle Reflections Culler (Build 42 driving anti-stutter fix)
         if getCore then
             local core = getCore()
             local enableReflections = (MPOptim.Config and MPOptim.Config.Get("GFX_DynamicReflections")) == true
@@ -158,7 +150,6 @@ function MPOptim.HordeOptimizer.Apply()
         end
     end
 
-    -- 4. Custom Shaders Master Toggle (Puddles, River Water & Wall Shaders)
     local enableCustomShaders = (MPOptim.Config and MPOptim.Config.Get("GFX_CustomShaders")) ~= false
 
     if IsoGridSquare then
@@ -173,7 +164,6 @@ function MPOptim.HordeOptimizer.Apply()
         IsoWater.isShaderEnable = enableCustomShaders
     end
 
-    -- 5. Build 42 Thread Safety & Asynchronous Pipeline Enforcer
     -- Threading.Animation MUST be false to prevent Kahlua worker thread assertion crashes during timed actions.
     -- Threading.Sound and Threading.Ambient MUST be false: FMOD and ambient emitter collections are not thread-safe,
     -- and cause TimSort race conditions (ArrayIndexOutOfBoundsException -2) when audio mods like DayZ Ambient play sounds while driving.
@@ -189,7 +179,6 @@ function MPOptim.HordeOptimizer.Apply()
         DebugOptions.instance:setBoolean("Threading.Lighting", true)
     end
 
-    -- 6. Dynamic Lighting Update Sync
     local targetLightingFPS = MPOptim.Config.Get("Lighting_FPS") or 60
     if PerformanceSettings then
         if PerformanceSettings.setLightingFPS then
@@ -209,9 +198,7 @@ end
 local zombieScanCursor = 0
 local BATCH_SIZE = 35
 
--- 7. Distant Zombie 3D Attachment & Accessory Culler, Adaptive Lighting & Staggered AI
 function MPOptim.HordeOptimizer.Update()
-    -- Adaptive Dynamic Lighting Framerate
     if MPOptim.Config and MPOptim.Config.Get("Lighting_AdaptiveFPS") then
         local curFPS = (MPOptim.Utils and MPOptim.Utils.getFPS and MPOptim.Utils.getFPS()) or 60
         local desiredLightFPS = (curFPS > 75) and 60 or ((curFPS > 45) and 45 or 30)
@@ -242,7 +229,6 @@ function MPOptim.HordeOptimizer.Update()
 
     local px, py = player:getX(), player:getY()
 
-    -- Micro-batching: process up to 35 entities per heartbeat tick to eliminate frame spikes
     local scanStart = zombieScanCursor % zCount
     local scanEnd = math.min(scanStart + BATCH_SIZE, zCount)
 
@@ -252,17 +238,14 @@ function MPOptim.HordeOptimizer.Update()
             local zx, zy = zombie:getX(), zombie:getY()
             local distSq = (zx - px) * (zx - px) + (zy - py) * (zy - py)
 
-            -- If zombie is distant (> 25 tiles) in a swarm
             if distSq > 625 then
                 if cullAttachments and zombie.getAttachedItems then
                     local items = zombie:getAttachedItems()
                     if items and items:size() > 0 and not zombie:isTargetVisible() then
-                        -- Attachment culling active on distant unaggroed zombies
                     end
                 end
 
                 if staggeredAI and (i % 3 ~= 0) and not zombie:isTargetVisible() then
-                    -- Stagger idle wander path calculation for distant passive zombies
                     if zombie.setPathFindIndex then
                         zombie:setPathFindIndex(-1)
                     end

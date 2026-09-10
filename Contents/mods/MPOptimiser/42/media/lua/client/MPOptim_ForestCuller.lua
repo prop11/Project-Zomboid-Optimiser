@@ -15,5 +15,4 @@ local lastCheckX = -9999
 local lastCheckY = -9999
 
 function MPOptim.ForestCuller.Update()
-    -- Build 42 natively handles multi-threaded canopy occlusion and branch sway shaders.
 end

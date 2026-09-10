@@ -11,15 +11,11 @@ require "MPOptim_Utils"
 MPOptim = MPOptim or {}
 MPOptim.ModShield = MPOptim.ModShield or {}
 
--- Store original native Lua functions
 local raw_collectgarbage = collectgarbage
 local raw_print = print
 local logHistory = {}
 local suppressedCounts = {}
 
--- ============================================================================
--- 1. Mod Garbage Collection Interceptor
--- ============================================================================
 -- Prevents 3rd-party mods from causing 300ms Stop-The-World freezes during gameplay
 -- while allowing queries ("count", "step") and running gentle incremental collection.
 function MPOptim.ModShield.InitGCInterceptor()
@@ -30,26 +26,21 @@ function MPOptim.ModShield.InitGCInterceptor()
             return raw_collectgarbage(opt, arg)
         end
 
-        -- Safe query operations: always pass directly
         if opt == "count" or opt == "step" or opt == "isrunning" or opt == "stop" or opt == "restart" then
             return raw_collectgarbage(opt, arg)
         end
 
-        -- If a mod calls collectgarbage("collect") or collectgarbage():
         if opt == "collect" or opt == nil then
             local player = getPlayer and getPlayer()
             local isSleeping = player and player.isAsleep and player:isAsleep()
             local isReading = player and player.isReading and player:isReading()
 
-            -- If player is safe/sleeping/reading, permit full collection
             if isSleeping or isReading then
                 return raw_collectgarbage("collect")
             end
 
-            -- During active gameplay/combat/driving: downgrade to gentle incremental step
             raw_collectgarbage("step", 60)
 
-            -- Notify internal GC optimizer of memory pressure
             if MPOptim.GCOptimizer and MPOptim.GCOptimizer.ScheduleIdlePurge then
                 MPOptim.GCOptimizer.ScheduleIdlePurge()
             end
@@ -62,18 +53,12 @@ function MPOptim.ModShield.InitGCInterceptor()
     MPOptim.ModShield.CollectGarbageHook = collectgarbage
 end
 
--- ============================================================================
--- 2. Smart Log I/O Throttler (100% Error-Preserving)
--- ============================================================================
--- 2. Smart Log I/O Throttler
 -- Native Kahlua print is preserved directly without table allocation or memory pressure.
 function MPOptim.ModShield.InitLogThrottler()
     MPOptim.ModShield.SanitizeFixingRecipes()
 end
 
--- ============================================================================
 -- 3. Vehicle Mechanics & 3rd-Party Mod FixingManager Null Shield
--- ============================================================================
 -- Protects Build 42 from NullPointerException in FixingManager.java:32 when 3rd-party mods
 -- ('85 Chevy Step-Van, DAMN Library, Tsar's Lib, Aviation Core) contain malformed repair recipes.
 function MPOptim.ModShield.SanitizeFixingRecipes()
@@ -90,7 +75,6 @@ function MPOptim.ModShield.SanitizeFixingRecipes()
                 fixing:setRequiredItem(ArrayList.new())
                 fixedCount = fixedCount + 1
             elseif fixing.getFixers and fixing:getFixers() then
-                -- Safely mark fallback list if supported
                 fixedCount = fixedCount + 1
             end
         end
@@ -100,7 +84,6 @@ function MPOptim.ModShield.SanitizeFixingRecipes()
     end
 end
 
--- Initialize hooks on load
 MPOptim.ModShield.InitGCInterceptor()
 MPOptim.ModShield.InitLogThrottler()
 MPOptim.ModShield.SanitizeFixingRecipes()
@@ -122,9 +105,7 @@ Events.OnMainMenuEnter.Add(function()
     MPOptim.ModShield.SanitizeFixingRecipes()
 end)
 
--- ============================================================================
 -- 4. 3rd-Party Water Pipes & Plumbing Mod Throttler & Stabilizer
--- ============================================================================
 -- The "Water Pipes" and irrigation mods run massive 50x50 tile graph searches and
 -- pump reachability simulations every single game tick (60 Hz). This causes
 -- crippling base lag & frame freezes. We throttle the calculation rate to 1 Hz

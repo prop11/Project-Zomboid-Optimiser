@@ -2,8 +2,7 @@
     Project Zomboid Optimiser (Build 42 & 41)
     File: media/lua/client/MPOptim_UI_Optimizer.lua
     Author: prop11
-    Description: High-performance virtual viewport scrolling, floor loot scan debouncing,
-                 and CleanUI/EquipmentUI/Gamepad-safe tooltip optimization for 500+ item containers.
+    Description: High-performance virtual viewport scrolling, floor loot scan debouncing,.
 --]]
 
 require "MPOptim_Config"
@@ -18,9 +17,6 @@ function MPOptim.UIOptimizer.Init()
     if isInitialized then return end
     isInitialized = true
 
-    -- ========================================================================
-    -- 1. Virtual Viewport Culling for ISInventoryPane (Fixes 8-10 FPS Loot Lag)
-    -- ========================================================================
     if ISInventoryPane then
         local original_renderdetails = ISInventoryPane.renderdetails
         if original_renderdetails then
@@ -29,7 +25,6 @@ function MPOptim.UIOptimizer.Init()
                     return original_renderdetails(self, doDragged)
                 end
 
-                -- If inventory list is small (< 30 items), pass directly
                 if not self.itemslist or #self.itemslist < 30 then
                     return original_renderdetails(self, doDragged)
                 end
@@ -38,9 +33,6 @@ function MPOptim.UIOptimizer.Init()
             end
         end
 
-        -- ====================================================================
-        -- 2. Tooltip Recalculation Debounce (Gamepad / CleanUI / EquipmentUI Safe)
-        -- ====================================================================
         local original_updateTooltip = ISInventoryPane.updateTooltip
         if original_updateTooltip then
             ISInventoryPane.updateTooltip = function(self)
@@ -48,13 +40,11 @@ function MPOptim.UIOptimizer.Init()
                     return original_updateTooltip(self)
                 end
 
-                -- If using a Gamepad / Controller, pass directly to vanilla/UI overrides
                 local isJoypad = (self.joyfocus ~= nil) or (JoypadState and JoypadState.players and JoypadState.players[self.player + 1])
                 if isJoypad then
                     return original_updateTooltip(self)
                 end
 
-                -- Mouse navigation: skip redundant per-frame recalculations when mouse is motionless
                 local mx = self:getMouseX()
                 local my = self:getMouseY()
 
@@ -69,9 +59,6 @@ function MPOptim.UIOptimizer.Init()
         end
     end
 
-    -- ========================================================================
-    -- 3. Minimap Render Passes (Class-Level Hook)
-    -- ========================================================================
     if ISMiniMapInner and ISMiniMapInner.prerender then
         local orig_inner_prerender = ISMiniMapInner.prerender
         ISMiniMapInner.prerender = function(self)

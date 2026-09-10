@@ -1,8 +1,7 @@
 --[[
-    Multiplayer Performance Optimizer (Build 42)
     File: media/lua/server/MPOptim_ServerManager.lua
     Author: prop11
-    Description: Dedicated server automated maintenance engine and sector task scheduler. Automatically applies Server preset.
+    Description: Dedicated server automated maintenance engine and sector task scheduler.
 --]]
 
 require "MPOptim_Config"
@@ -15,7 +14,6 @@ MPOptim.ServerManager = MPOptim.ServerManager or {}
 
 local serverHoursCount = 0
 
--- Automatically apply the official Server Preset if no custom INI exists
 local function initServerProfile()
     if MPOptim.Config and MPOptim.Presets and MPOptim.Presets.Server then
         if not MPOptim.Config.Current or next(MPOptim.Config.Current) == nil then

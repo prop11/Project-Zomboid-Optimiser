@@ -2,7 +2,7 @@
     Project Zomboid Optimiser (Build 42 & 41)
     File: media/lua/client/MPOptim_FPSLimiter.lua
     Author: prop11
-    Description: Focus loss is natively handled by the PZ engine via Options -> General -> 'Pause On Focus Loss' (focusloss in options.ini).
+    Description: Focus loss is natively handled by the PZ engine via Options -> General -> 'Pause On Focus Loss' (focusloss in options.
 --]]
 
 require "MPOptim_Config"
@@ -26,7 +26,6 @@ function MPOptim.FPSLimiter.Update()
     end
 
     local isWindowActive = true
-    -- Native PZO Engine bridge check (zero overhead, pure native window state, Build 41 & 42 compatible)
     local bridge = (type(PZOEngineBridge) == "table" and PZOEngineBridge) or (type(PZOEngine) == "table" and PZOEngine)
     if bridge and type(bridge.isWindowActive) == "function" then
         local active = bridge.isWindowActive()

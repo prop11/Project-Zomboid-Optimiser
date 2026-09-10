@@ -19,7 +19,6 @@ local appliedMaxZ = -1
 local wasCulled = false
 local windowGraceTimer = 0
 
--- Fast native state applier that ONLY touches engine properties on actual delta change
 local function applyZRange(cell, minZ, maxZ)
     if appliedMinZ == minZ and appliedMaxZ == maxZ then return end
     
@@ -51,7 +50,6 @@ function MPOptim.BuildingOptimizer.Update()
     local player = getPlayer and getPlayer()
     if not player then return end
 
-    -- Vehicles are always exterior and travel at high speeds: skip building interior scan
     if player.getVehicle and player:getVehicle() then
         if wasCulled then
             MPOptim.BuildingOptimizer.Restore()
@@ -70,7 +68,6 @@ function MPOptim.BuildingOptimizer.Update()
     local room = player.getCurrentRoom and player:getCurrentRoom()
     local building = currentSquare.getBuilding and currentSquare:getBuilding()
 
-    -- 1. If player is outdoors or in an unroofed space, restore baseline rendering smoothly
     if isOutside or (room == nil and building == nil) then
         if wasCulled then
             MPOptim.BuildingOptimizer.Restore()
@@ -79,7 +76,6 @@ function MPOptim.BuildingOptimizer.Update()
         return
     end
 
-    -- 2. Skip perimeter rescanning if player hasn't moved squares
     if px == lastSqX and py == lastSqY and pZ == lastSqZ and wasCulled then
         return
     end
@@ -91,7 +87,6 @@ function MPOptim.BuildingOptimizer.Update()
     local nearWindowOrBalcony = false
     local nearStairs = false
 
-    -- Fast 5x5 spatial scan using native boolean flags only (0 string allocations)
     for dx = -2, 2 do
         for dy = -2, 2 do
             local sq = cell:getGridSquare(px + dx, py + dy, pZ)
@@ -119,12 +114,10 @@ function MPOptim.BuildingOptimizer.Update()
         return
     end
 
-    -- If grace timer is active, wait until player is settled deep inside
     if now < windowGraceTimer then
         return
     end
 
-    -- 3. Upper Floors (Z >= 2) Occlusion Clamping
     if pZ >= 2 then
         local targetMinZ = nearStairs and math.max(0, pZ - 2) or math.max(0, pZ - 1)
         local targetMaxZ = nearStairs and math.min(32, pZ + 2) or math.min(32, pZ + 1)

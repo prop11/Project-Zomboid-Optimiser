@@ -17,7 +17,6 @@ local PRESETS_FILENAME = "MPOptim_CustomPresets.ini"
 function MPOptim.CustomPresets.LoadAll()
     MPOptim.CustomPresets.Data = {}
 
-    -- Seed built-in sample presets if needed
     MPOptim.CustomPresets.Data["Solo Balanced (No Cleanups)"] = {
         Blood_CapPerTile = true,
         Blood_AutoClean = false,

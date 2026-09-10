@@ -1,5 +1,4 @@
 --[[
-    Multiplayer Performance Optimizer (Build 42 & 41)
     File: media/lua/shared/MPOptim_Network.lua
     Author: prop11
     Description: Multiplayer network protocol, command dispatch, and server config disk synchronizer.
@@ -12,9 +11,6 @@ MPOptim = MPOptim or {}
 MPOptim.Network = MPOptim.Network or {}
 MPOptim.Network.ModuleName = "MPOptimizer"
 
--- ============================================================================
--- Client-Side Network Senders
--- ============================================================================
 if isClient and isClient() then
 
     function MPOptim.Network.SendAdminCleanRequest(x, y, z, radius, options)
@@ -74,9 +70,6 @@ if isClient and isClient() then
     end)
 end
 
--- ============================================================================
--- Server-Side Command Handlers
--- ============================================================================
 if isServer and isServer() then
 
     Events.OnClientCommand.Add(function(module, command, player, args)

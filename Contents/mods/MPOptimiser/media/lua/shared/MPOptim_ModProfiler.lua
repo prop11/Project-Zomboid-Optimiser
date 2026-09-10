@@ -35,7 +35,6 @@ local function estimateTableMemory(tbl, visited, depth)
     return bytes
 end
 
--- Scan active mods, their global tables, event listeners, and memory footprints
 function MPOptim.ModProfiler.Scan()
     local results = {}
     local totalActive = 0
@@ -89,7 +88,6 @@ function MPOptim.ModProfiler.Scan()
         end
     end
 
-    -- Always include vanilla / core entry if empty
     if totalActive == 0 then
         modMap["vanilla"] = {
             id = "Vanilla",
@@ -106,7 +104,6 @@ function MPOptim.ModProfiler.Scan()
         totalActive = 1
     end
 
-    -- Scan global environment _G for mod namespaces
     local visitedTables = {}
     for globalName, val in pairs(_G) do
         if type(globalName) == "string" and type(val) == "table" and globalName ~= "_G" and globalName ~= "package" then
@@ -120,7 +117,6 @@ function MPOptim.ModProfiler.Scan()
                 end
             end
 
-            -- Special recognized prefixes
             if not matchedMod then
                 if string.find(lowerGName, "mpoptim") or string.find(lowerGName, "optimiser") then
                     matchedMod = modMap["mpoptimizer"] or modMap["mpoptimiser"]
@@ -143,7 +139,6 @@ function MPOptim.ModProfiler.Scan()
         end
     end
 
-    -- Scan active event listeners across common PZ engine events
     local commonEvents = {
         "OnTick", "OnRenderTick", "EveryOneMinute", "EveryTenMinutes", "EveryHours", "EveryDays",
         "OnPlayerUpdate", "OnZombieUpdate", "OnFillWorldObjectContextMenu", "OnFillInventoryObjectContextMenu",
@@ -179,9 +174,7 @@ function MPOptim.ModProfiler.Scan()
         end
     end
 
-    -- Calculate performance ratings
     for _, mData in pairs(modMap) do
-        -- Add baseline overhead per mod
         if mData.estimatedBytes == 0 then
             mData.estimatedBytes = 128 * 1024 -- Baseline 128 KB
         end
@@ -200,7 +193,6 @@ function MPOptim.ModProfiler.Scan()
         table.insert(results, mData)
     end
 
-    -- Sort results by estimated memory descending
     table.sort(results, function(a, b)
         return a.estimatedBytes > b.estimatedBytes
     end)

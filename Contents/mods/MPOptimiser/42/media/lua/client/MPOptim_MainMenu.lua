@@ -16,9 +16,6 @@ require "ISUI/ISRichTextPanel"
 MPOptim = MPOptim or {}
 MPOptim.MainMenu = MPOptim.MainMenu or {}
 
--- ============================================================================
--- 1. First-Launch Welcome Modal
--- ============================================================================
 local FirstLaunchModal = ISPanel:derive("MPOptim_FirstLaunchModal")
 
 function FirstLaunchModal:new(x, y, width, height)
@@ -129,9 +126,6 @@ function MPOptim.MainMenu.ShowFirstLaunchModal()
     return true
 end
 
--- ============================================================================
--- 1B. Mod Version Update Notification Modal
--- ============================================================================
 local UpdateNotificationModal = ISPanel:derive("MPOptim_UpdateNotificationModal")
 
 function UpdateNotificationModal:new(x, y, width, height)
@@ -244,12 +238,6 @@ function MPOptim.MainMenu.ShowUpdateModal()
     modal:addToUIManager()
 end
 
--- ============================================================================
--- 2. Multi-CPU & JVM Memory Launcher Optimizer Modal
--- ============================================================================
--- ============================================================================
--- 1C. Java Engine Injection Agent & GitHub Modal
--- ============================================================================
 local EngineAgentModal = ISPanel:derive("MPOptim_EngineAgentModal")
 
 function EngineAgentModal:new(x, y, width, height)
@@ -433,7 +421,6 @@ function MultiCPUModal:createChildren()
     self.textBox:paginate()
     self:addChild(self.textBox)
 
-    -- Action Buttons Row 1: Copy Launch Options (8GB, 6GB, 4GB)
     local row1Y = self.height - (btnH * 2) - math.floor(25 * scale)
     local btnW3 = math.floor((self.width - (pad * 4)) / 3)
 
@@ -479,7 +466,6 @@ function MultiCPUModal:createChildren()
     btn4GB.tooltip = "For low-spec systems with 8GB total RAM. Copies '-Xmx4096m' to clipboard for ProjectZomboid64.json."
     self:addChild(btn4GB)
 
-    -- Action Buttons Row 2: Close Button
     local row2Y = self.height - btnH - math.floor(12 * scale)
     local closeBtn = ISButton:new(pad, row2Y, self.width - (pad * 2), btnH, "[OK] Close", self, function(s)
         s:setVisible(false)
@@ -518,9 +504,6 @@ function MPOptim.MainMenu.ShowMultiCPUModal()
     modal:addToUIManager()
 end
 
--- ============================================================================
--- 3. Main Menu Button Injection & Per-Frame Screen Sync
--- ============================================================================
 local menuBtnInstance = nil
 local cpuBtnInstance = nil
 local pzoIconBtn = nil
@@ -645,7 +628,6 @@ function MPOptim.MainMenu.InjectButton()
 
     local isAgent = MPOptim.Utils and MPOptim.Utils.IsEngineAgentInjected and MPOptim.Utils.IsEngineAgentInjected()
 
-    -- 1. Very Top-Right PZO Icon Button with Hover Tooltip
     local iconTex = getTexture("media/ui/app.png") or getTexture("media/ui/pzo_icon.png") or getTexture("media/ui/app.ico") or getTexture("icon.png")
     pzoIconBtn = ISButton:new(iconX, iconY, iconSize, iconSize, "", nil, function()
         MPOptim.MainMenu.ShowEngineAgentModal()
@@ -664,7 +646,6 @@ function MPOptim.MainMenu.InjectButton()
     pzoIconBtn.tooltip = isAgent and "PZO Engine Active" or "PZO Engine Inactive"
     mainScreen:addChild(pzoIconBtn)
 
-    -- 2. Main Optimiser Control Center Button (CTRL + Click toggles Developer Mode)
     menuBtnInstance = ISButton:new(btnX, btnY, btnW, btnH, "[*] OPTIMISER", nil, function()
         if isCtrlKeyDown and isCtrlKeyDown() then
             MPOptim.ToggleDevMode()
@@ -677,7 +658,6 @@ function MPOptim.MainMenu.InjectButton()
     menuBtnInstance.borderColor = { r = 0.25, g = 0.60, b = 0.95, a = 0.95 }
     mainScreen:addChild(menuBtnInstance)
 
-    -- 3. Optional Engine Enhancement Button (Shown only when Engine is inactive)
     local getAgentY = btnY + btnH + math.floor(6 * scale)
     cpuBtnInstance = ISButton:new(btnX, getAgentY, btnW, btnH, "[*] OPTIONAL ENGINE ENHANCEMENT", nil, function()
         MPOptim.MainMenu.ShowEngineAgentModal()
@@ -688,7 +668,6 @@ function MPOptim.MainMenu.InjectButton()
     cpuBtnInstance.tooltip = "The Lua mod is 100% fully functional on its own. Click to view the optional open-source PZO installer on GitHub for extra 8GB+ RAM allocation and JVM tuning."
     mainScreen:addChild(cpuBtnInstance)
 
-    -- 4. Compact Bug & Crash Reporter Button
     local bugBtnW = math.max(130, math.floor(150 * scale))
     local bugBtnH = math.max(22, math.floor(fontH + 6 * scale))
     local bugBtnX = btnX + math.floor((btnW - bugBtnW) / 2)
@@ -705,7 +684,6 @@ function MPOptim.MainMenu.InjectButton()
     bugReportBtnInstance.tooltip = "Encountering an issue or crash? Click to package your console.txt and pzo_engine.log diagnostics for GitHub."
     mainScreen:addChild(bugReportBtnInstance)
 
-    -- 5. GitHub Update Alert Button (Appears only when a newer release is detected)
     local hasUpdate, latestVer, updateUrl = MPOptim.Utils.CheckGitHubUpdate and MPOptim.Utils.CheckGitHubUpdate()
     local updateBtnY = bugBtnY + bugBtnH + math.floor(4 * scale)
 
@@ -749,12 +727,6 @@ end
 Events.OnMainMenuEnter.Add(MPOptim.MainMenu.InjectButton)
 
 
--- ============================================================================
-
-
-
--- 4. Developer Mode & Benchmark Suite (CTRL + Click on Main Menu Button)
--- ============================================================================
 function MPOptim.ToggleDevMode()
     MPOptim.DevMode = not MPOptim.DevMode
     local player = getPlayer and getPlayer()

@@ -11,7 +11,6 @@ require "MPOptim_Utils"
 local function onFillWorldObjectContextMenu(player, context, worldobjects, test)
     if test and ISWorldObjectContextMenu and ISWorldObjectContextMenu.Test then return true end
 
-    -- Check if right-click context menu is enabled in user settings
     if MPOptim.Config and not MPOptim.Config.Get("UI_ShowContextMenu") then
         return
     end
@@ -47,7 +46,6 @@ local function onFillWorldObjectContextMenu(player, context, worldobjects, test)
         if MPOptim.ToggleHUD then MPOptim.ToggleHUD() end
     end)
 
-    -- In Multiplayer, world cleanups (Blood, Corpses, Debris) are strictly restricted to Admins
     if isAdmin then
         subMenu:addOption(MPOptim.GetText("UI_MPOptim_CleanBloodArea", "Clean Blood in Area (30m)"), nil, function()
             if MPOptim.ClientCleaner then MPOptim.ClientCleaner.QuickClean("blood", 30) end

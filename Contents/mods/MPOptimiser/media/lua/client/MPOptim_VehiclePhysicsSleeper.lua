@@ -2,7 +2,7 @@
     Project Zomboid Optimiser (Build 42 & 41)
     File: media/lua/client/MPOptim_VehiclePhysicsSleeper.lua
     Author: prop11
-    Description: Safe vehicle physics state synchronizer. Ensures all player and modded vehicles (KI5, Filibuster, etc.) remain fully responsive with active physics.
+    Description: Safe vehicle physics state synchronizer.
 --]]
 
 require "MPOptim_Config"
@@ -37,7 +37,6 @@ local function forEachVehicle(cell, callback)
     end
 end
 
--- Ensure vehicles are always awake and responsive
 function MPOptim.VehicleSleeper.WakeAll()
     local cell = getCell and getCell()
     if not cell then return end
@@ -52,7 +51,6 @@ function MPOptim.VehicleSleeper.WakeAll()
 end
 
 function MPOptim.VehicleSleeper.Update()
-    -- Maintain active physics and part synchronization on all nearby vehicles
     MPOptim.VehicleSleeper.WakeAll()
 end
 

@@ -52,7 +52,6 @@ function MPOptim.ClientCleaner.CleanAroundPlayer(radius, options, onComplete)
     end
 end
 
--- Quick clean initiated manually by player in menu
 function MPOptim.ClientCleaner.QuickClean(cleanType, radius)
     local rad = radius or (MPOptim.Config and MPOptim.Config.Get("Blood_CleanRadius")) or 30
     local opts = {
@@ -73,7 +72,6 @@ function MPOptim.ClientCleaner.QuickClean(cleanType, radius)
             local text = string.format("Optimized: %d blood, %d corpses, %d debris cleaned",
                 results.bloodCleaned or 0, results.corpsesCleaned or 0, results.debrisCleaned or 0)
 
-            -- Force notification popup on manual button clicks
             if MPOptim.Utils and MPOptim.Utils.Notify then
                 MPOptim.Utils.Notify(player, text, true)
             end
@@ -85,7 +83,6 @@ local hoursPassedBlood = 0
 local hoursPassedDebris = 0
 local hoursPassedCorpse = 0
 
--- Background hourly cleanup routine
 Events.EveryHours.Add(function()
     hoursPassedBlood = hoursPassedBlood + 1
     hoursPassedDebris = hoursPassedDebris + 1

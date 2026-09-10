@@ -19,7 +19,6 @@ local registeredPzApiOptions = nil
 function MPOptim.ModOptions.SyncFromConfig()
     if not MPOptim.Config or not MPOptim.Config.Current then return end
 
-    -- 1. Sync Native PZAPI.ModOptions instance
     local pzOpt = registeredPzApiOptions
     if not pzOpt and PZAPI and PZAPI.ModOptions and PZAPI.ModOptions.getOptions then
         pzOpt = PZAPI.ModOptions:getOptions(MOD_ID)

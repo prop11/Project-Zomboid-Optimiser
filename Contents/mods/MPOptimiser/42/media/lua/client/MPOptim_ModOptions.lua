@@ -79,7 +79,6 @@ local function registerNativeOptions()
         opt:addTickBox("Weather_DisableTreeWind", "Disable Storm Tree Wind Sway (CPU Saver)", (MPOptim.Config and MPOptim.Config.Get("Weather_DisableTreeWind")) == true, "Disables barycentric tree sway recalculation during storms, preventing CPU stalls when driving through forests")
 
         opt:addTitle("Vehicles & Anti-Stutter Chunk Streaming")
-        opt:addTickBox("Vehicle_PhysicsSleep", "Parked Vehicle Physics Sleeper", (MPOptim.Config and MPOptim.Config.Get("Vehicle_PhysicsSleep")) == true, "Puts stationary parked vehicles into Bullet physics sleep mode")
         opt:addTickBox("Vehicle_ChunkPriorityMode", "Anti-Stutter Vehicle Streamer (Master Switch)", (MPOptim.Config and MPOptim.Config.Get("Vehicle_ChunkPriorityMode")) ~= false, "Prioritizes road chunk loading bandwidth and throttles non-essential systems while driving")
         opt:addTickBox("Vehicle_LimitDriveZoom", "Prevent Extreme Auto-Zoom While Driving", (MPOptim.Config and MPOptim.Config.Get("Vehicle_LimitDriveZoom")) == true, "Limits auto-zoom while driving to save draw calls. (Keep OFF to allow road chunks to stream ahead at high speed)")
         opt:addTickBox("Vehicle_PreDrivePurge", "Pre-Drive RAM Purge on Vehicle Entry", (MPOptim.Config and MPOptim.Config.Get("Vehicle_PreDrivePurge")) == true, "Runs a quick memory cleanup when entering a vehicle")
@@ -115,7 +114,7 @@ local function registerNativeOptions()
                 "GFX_EnforceTextureCompression", "GFX_DynamicReflections", "GFX_ModelLighting", "Threaded_Lighting", "Horde_ThrottleStaticAnims", "Horde_AccelerateAnimFalloff",
                 "Weather_ClampRainParticles", "Fire_ThrottleParticles",
                 "Blood_CapPerTile", "Corpse_CullShadows", "Weather_Optimize", "Weather_PuddleOptimization", "Weather_DisableTreeWind",
-                "Vehicle_PhysicsSleep", "Vehicle_ChunkPriorityMode", "Vehicle_LimitDriveZoom", "Vehicle_PreDrivePurge", "Vehicle_ScaleLightingFPS",
+                "Vehicle_ChunkPriorityMode", "Vehicle_LimitDriveZoom", "Vehicle_PreDrivePurge", "Vehicle_ScaleLightingFPS",
                 "Vehicle_SuspendBackgroundCleanups", "Vehicle_ThreadedModelSlots",
                 "GC_SmartIdleGC", "GC_PurgeThresholdMB", "Blood_AutoClean", "Corpse_AutoClean", "Corpse_IntervalHours", "Debris_AutoClean",
                 "Animal_CleanTracks", "Base_ProtectPlayerStructures",

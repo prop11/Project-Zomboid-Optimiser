@@ -788,9 +788,6 @@ local function onMasterHeartbeat()
         MPOptim.StaggerQueue.OnTickSlice()
     end
 
-    if MPOptim.CombatHordeSuite and MPOptim.CombatHordeSuite.HasPendingBursts and MPOptim.CombatHordeSuite.HasPendingBursts() then
-        MPOptim.CombatHordeSuite.ProcessBurstQueue()
-    end
 
     -- Background FPS Limiter (Every 30 ticks = ~0.5s)
     if masterTick % 30 == 5 then

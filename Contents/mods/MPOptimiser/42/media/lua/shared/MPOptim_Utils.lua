@@ -860,6 +860,9 @@ local function readFileSafe(filename)
     return content
 end
 
+local _cachedRamGb = nil
+local _cachedRamGbTime = 0
+
 function MPOptim.Utils.GetOptimizedRAM()
     if type(PZOEngineRAM) == "number" and PZOEngineRAM > 0 then
         return PZOEngineRAM
@@ -879,15 +882,46 @@ function MPOptim.Utils.GetOptimizedRAM()
         end
     end
 
+    local now = (getTimeInMillis and getTimeInMillis()) or 0
+    if _cachedRamGb ~= nil and (now - _cachedRamGbTime) < 10000 and (now >= _cachedRamGbTime) then
+        return _cachedRamGb
+    end
+
+    _cachedRamGbTime = now
+
     local content = readFileSafe("pzo_status.json")
     if content then
         local ram = string.match(content, '"ram_gb"%s*:%s*(%d+)')
         if ram then
-            return tonumber(ram) or 8
+            local val = tonumber(ram)
+            if val and val > 0 then
+                _cachedRamGb = val
+                return val
+            end
         end
     end
-    return 3
+
+    local contentTel = readFileSafe("pzo_telemetry.json") or readFileSafe("pzo_server_telemetry.json")
+    if contentTel then
+        local maxMb = string.match(contentTel, '"max_mb"%s*:%s*(%d+)')
+        if maxMb then
+            local mb = tonumber(maxMb)
+            if mb and mb > 0 then
+                local calcGb = math.floor((mb / 1024) + 0.5)
+                if calcGb > 0 then
+                    _cachedRamGb = calcGb
+                    return calcGb
+                end
+            end
+        end
+    end
+
+    _cachedRamGb = 8
+    return 8
 end
+
+local _cachedEngineInjected = nil
+local _cachedEngineInjectedTime = 0
 
 function MPOptim.Utils.IsEngineAgentInjected()
     if PZOEngineActive == true or isPZOEngineActive == true then
@@ -907,21 +941,32 @@ function MPOptim.Utils.IsEngineAgentInjected()
         end
     end
 
+    local now = (getTimeInMillis and getTimeInMillis()) or 0
+    if _cachedEngineInjected ~= nil and (now - _cachedEngineInjectedTime) < 10000 and (now >= _cachedEngineInjectedTime) then
+        return _cachedEngineInjected
+    end
+
+    _cachedEngineInjectedTime = now
+
     local content = readFileSafe("pzo_status.json")
     if content and (string.find(content, '"optimized"%s*:%s*true') or string.find(content, '"ram_gb"')) then
+        _cachedEngineInjected = true
         return true
     end
 
     local contentTel = readFileSafe("pzo_telemetry.json") or readFileSafe("pzo_server_telemetry.json")
     if contentTel and (string.find(contentTel, '"max_mb"') or string.find(contentTel, '"gc_count"') or string.find(contentTel, '"used_mb"') or string.find(contentTel, '"server_optimized"')) then
+        _cachedEngineInjected = true
         return true
     end
 
     local contentUp = readFileSafe("pzo_update.json")
     if contentUp and string.find(contentUp, '"current_version"') then
+        _cachedEngineInjected = true
         return true
     end
 
+    _cachedEngineInjected = false
     return false
 end
 

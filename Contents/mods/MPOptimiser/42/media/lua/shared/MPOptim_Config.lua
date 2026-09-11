@@ -21,6 +21,7 @@ MPOptim.DefaultConfig = {
     JVM_KahluaGCPacer = true,
     JVM_PowerShield = true,
     JVM_StreamBufferBoost = true,
+    JVM_BytecodeBloodCap = true,
     JVM_ChunkCacheSize = 500,
     JVM_GCThresholdMB = 6000,
 
@@ -827,7 +828,7 @@ function MPOptim.Config.SyncToEngine()
     local bridge = (type(PZOEngineBridge) == "table" and PZOEngineBridge) or (type(PZOEngine) == "table" and PZOEngine)
     if bridge then
         if type(bridge.setJvmOption) == "function" then
-            local boolKeys = { "JVM_GLStateOptimizer", "JVM_StreamBufferBoost", "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_PowerShield", "JVM_AsyncModelCompile", "JVM_HordeHibernation" }
+            local boolKeys = { "JVM_GLStateOptimizer", "JVM_StreamBufferBoost", "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_PowerShield", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_BytecodeBloodCap" }
             for _, k in ipairs(boolKeys) do
                 local val = MPOptim.Config.Get(k)
                 if val ~= nil then

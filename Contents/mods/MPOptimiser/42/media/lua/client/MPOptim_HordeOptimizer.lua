@@ -176,7 +176,8 @@ function MPOptim.HordeOptimizer.Apply()
         DebugOptions.instance:setBoolean("Threading.World", false)
         DebugOptions.instance:setBoolean("Threading.Pathfinding", true)
         DebugOptions.instance:setBoolean("Threading.RecalculateGridStacks", true)
-        DebugOptions.instance:setBoolean("Threading.Lighting", true)
+        local threadLight = (MPOptim.Config and MPOptim.Config.Get("Threaded_Lighting")) ~= false
+        DebugOptions.instance:setBoolean("Threading.Lighting", threadLight)
     end
 
     local targetLightingFPS = MPOptim.Config.Get("Lighting_FPS") or 60
@@ -189,6 +190,14 @@ function MPOptim.HordeOptimizer.Apply()
         PerformanceSettings.lightingFps = targetLightingFPS
     end
 
+    local cullCorpseShadows = MPOptim.Config and MPOptim.Config.Get("Corpse_CullShadows")
+    if cullCorpseShadows ~= nil and getCore then
+        local core = getCore()
+        if core and core.setOptionCorpseShadows then
+            core:setOptionCorpseShadows(not cullCorpseShadows)
+        end
+    end
+
     print(string.format("[MPOptimizer] Engine Optimizations Applied (Imposters: %s, BlendedZombies: %s, FalloffCount: %s, LightingFPS: %s)",
         tostring(enableImposters), tostring(PerformanceSettings.numberZombiesBlended or 20),
         tostring(PerformanceSettings.zombieAnimationSpeedFalloffCount or 6),
@@ -196,7 +205,6 @@ function MPOptim.HordeOptimizer.Apply()
 end
 
 local zombieScanCursor = 0
-local BATCH_SIZE = 35
 
 function MPOptim.HordeOptimizer.Update()
     if MPOptim.Config and MPOptim.Config.Get("Lighting_AdaptiveFPS") then
@@ -210,10 +218,8 @@ function MPOptim.HordeOptimizer.Update()
         end
     end
 
-    local cullAttachments = MPOptim.Config and MPOptim.Config.Get("Horde_CullDistantAttachments") == true
     local staggeredAI = MPOptim.Config and MPOptim.Config.Get("Horde_StaggeredAITicking") == true
-
-    if not cullAttachments and not staggeredAI then return end
+    if not staggeredAI then return end
 
     local player = getPlayer and getPlayer()
     if not player then return end
@@ -225,12 +231,13 @@ function MPOptim.HordeOptimizer.Update()
     if not zombieList or zombieList:size() == 0 then return end
 
     local zCount = zombieList:size()
-    if zCount < 20 then return end -- Only engage during larger crowds
+    if zCount < 20 then return end
 
     local px, py = player:getX(), player:getY()
 
+    local batchSize = math.max(35, math.floor(zCount / 4))
     local scanStart = zombieScanCursor % zCount
-    local scanEnd = math.min(scanStart + BATCH_SIZE, zCount)
+    local scanEnd = math.min(scanStart + batchSize, zCount)
 
     for i = scanStart, scanEnd - 1 do
         local zombie = zombieList:get(i)
@@ -238,14 +245,9 @@ function MPOptim.HordeOptimizer.Update()
             local zx, zy = zombie:getX(), zombie:getY()
             local distSq = (zx - px) * (zx - px) + (zy - py) * (zy - py)
 
-            if distSq > 625 then
-                if cullAttachments and zombie.getAttachedItems then
-                    local items = zombie:getAttachedItems()
-                    if items and items:size() > 0 and not zombie:isTargetVisible() then
-                    end
-                end
-
-                if staggeredAI and (i % 3 ~= 0) and not zombie:isTargetVisible() then
+            if distSq > 625 and (i % 3 ~= 0) then
+                local hasTarget = (zombie.getTarget and zombie:getTarget() ~= nil) or (zombie.bHasTarget and zombie:bHasTarget())
+                if not hasTarget and not zombie:isTargetVisible() then
                     if zombie.setPathFindIndex then
                         zombie:setPathFindIndex(-1)
                     end

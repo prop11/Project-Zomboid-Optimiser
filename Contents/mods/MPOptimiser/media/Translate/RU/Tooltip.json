@@ -169,6 +169,7 @@
     "UI_ModOptions_Admin_ProtectSafehouses": "Защита убежищ в мультиплеере",
     "UI_ModOptions_Admin_StaggerPerTick": "Скорость микро-пакетов (Тайлов / Тик)",
     "UI_ModOptions_JVM_ZeroStutterGC": "Фоновый сборщик мусора без фризов",
+    "UI_ModOptions_JVM_BytecodeBloodCap": "Байткод-лимит крови (без FBO-фризов)",
     "UI_ModOptions_JVM_DeepChunkCache": "Глубокий кэш чанков в ОЗУ (Без лагов диска)",
     "UI_ModOptions_JVM_AsyncModelCompile": "Асинхронная компиляция 3D-моделей",
     "UI_ModOptions_JVM_HordeHibernation": "Пространственная спячка далеких орд",
@@ -311,6 +312,7 @@
     "UI_MPOptim_Tooltip_Admin_StaggerPerTick": "Количество клеток, сканируемых за один кадр движка во время фоновой уборки.",
     "Tooltip_MPOptim_JVM_ZeroStutterGC": "Устраняет паузы от сборщика мусора Lua во время боя и езды за счет фоновых потоков G1GC.",
     "UI_MPOptim_Tooltip_JVM_ZeroStutterGC": "Устраняет паузы от сборщика мусора Lua во время боя и езды за счет фоновых потоков G1GC.",
+    "UI_MPOptim_Tooltip_JVM_BytecodeBloodCap": "Патчит IsoGridSquare.splatBlood на уровне байткода JVM, мгновенно завершая метод, если на клетке уже есть кровь. Устраняет фризы при перерисовке FBO-текстур в бою.",
     "Tooltip_MPOptim_JVM_DeepChunkCache": "Кэширует пройденные участки карты в RAM (8GB+), исключая фризы подгрузки с диска при разворотах.",
     "UI_MPOptim_Tooltip_JVM_DeepChunkCache": "Кэширует пройденные участки карты в RAM (8GB+), исключая фризы подгрузки с диска при разворотах.",
     "Tooltip_MPOptim_JVM_AsyncModelCompile": "Компилирует 3D-одежду, броню и текстуры машин в фоновых потоках процессора, убирая лаги при смене экипировки.",
@@ -350,5 +352,12 @@
     "UI_MPOptim_Tooltip_Weather_DisableTreeWind": "Отключает сложные расчеты искривления деревьев при шторме, предотвращая зависания на лесных трассах.",
     "UI_ModOptions_Corpse_IntervalHours": "Интервал очистки трупов",
     "Tooltip_MPOptim_Corpse_IntervalHours": "Внутриигровые часы между циклами автоматической уборки тел зомби.",
-    "UI_MPOptim_Tooltip_Corpse_IntervalHours": "Внутриигровые часы между циклами автоматической уборки тел зомби."
+    "UI_MPOptim_Tooltip_Corpse_IntervalHours": "Внутриигровые часы между циклами автоматической уборки тел зомби.",
+    "UI_ModOptions_JVM_ChunkCacheSize": "Размер кэша чанков в ОЗУ",
+    "UI_MPOptim_Tooltip_JVM_ChunkCacheSize": "Количество чанков мира, удерживаемых в памяти для мгновенной прогрузки дорог без зависаний.",
+    "UI_ModOptions_JVM_GCThresholdMB": "Порог очистки кучи JVM",
+    "UI_MPOptim_Tooltip_JVM_GCThresholdMB": "Целевой порог памяти до запуска мягкой фоновой очистки сборщиком мусора (GC).",
+    "UI_MPOptim_Tooltip_PresetLoad": "Загружает выбранный профиль и немедленно применяет все оптимизации.",
+    "UI_MPOptim_Tooltip_PresetSave": "Сохраняет текущие настройки в новый именованный профиль.",
+    "UI_MPOptim_Tooltip_PresetDelete": "Безвозвратно удаляет выбранный пользовательский профиль."
 }

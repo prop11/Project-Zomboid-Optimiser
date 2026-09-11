@@ -717,6 +717,21 @@ function MPOptim.StaggerQueue.OnTickSlice()
                 end
             end
 
+            if (MPOptim.Config and MPOptim.Config.Get("Animal_CleanTracks")) or job.options.cleanTracks then
+                local objs = square.getObjects and square:getObjects()
+                if objs and objs:size() > 0 then
+                    for oi = objs:size() - 1, 0, -1 do
+                        local obj = objs:get(oi)
+                        if obj and obj.getObjectName and obj:getObjectName() == "IsoAnimalTrack" then
+                            if square.RemoveTileObject then
+                                square:RemoveTileObject(obj)
+                                job.results.debrisCleaned = (job.results.debrisCleaned or 0) + 1
+                            end
+                        end
+                    end
+                end
+            end
+
             if square and square.hasFlies and square:hasFlies() then
                 if MPOptim.Config and MPOptim.Config.Get("Corpse_MuteFlies") then
                     if square.setHasFlies then

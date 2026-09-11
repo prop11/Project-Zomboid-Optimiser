@@ -169,6 +169,7 @@
     "UI_ModOptions_Admin_ProtectSafehouses": "多人模式下全面保护已认领安全屋",
     "UI_ModOptions_Admin_StaggerPerTick": "微批次每帧扫描地块数",
     "UI_ModOptions_JVM_ZeroStutterGC": "零顿挫后台G1GC垃圾回收模式",
+    "UI_ModOptions_JVM_BytecodeBloodCap": "JVM字节码血液覆盖上限（零FBO卡顿）",
     "UI_ModOptions_JVM_DeepChunkCache": "超大内存深层区块缓存 (告别掉头读盘卡顿)",
     "UI_ModOptions_JVM_AsyncModelCompile": "多线程异步编译3D服装与车辆模型",
     "UI_ModOptions_JVM_HordeHibernation": "远距离尸潮空间内存休眠技术",
@@ -311,6 +312,7 @@
     "UI_MPOptim_Tooltip_Admin_StaggerPerTick": "后台清理扫描时，游戏引擎每帧处理的地块数量。",
     "Tooltip_MPOptim_JVM_ZeroStutterGC": "通过将内存管理委托给后台G1GC线程，彻底消除战斗与驾驶时的Lua垃圾回收全停顿。",
     "UI_MPOptim_Tooltip_JVM_ZeroStutterGC": "通过将内存管理委托给后台G1GC线程，彻底消除战斗与驾驶时的Lua垃圾回收全停顿。",
+    "UI_MPOptim_Tooltip_JVM_BytecodeBloodCap": "在JVM字节码层面直接拦截IsoGridSquare.splatBlood，若地块已存在血迹则立即返回，彻底杜绝高杀伤战斗中整块FBO纹理重绑导致的掉帧。",
     "Tooltip_MPOptim_JVM_DeepChunkCache": "在8GB+内存中长期缓存最近探索过的城镇道路区块，彻底消除掉头折返时的磁盘读取卡顿。",
     "UI_MPOptim_Tooltip_JVM_DeepChunkCache": "在8GB+内存中长期缓存最近探索过的城镇道路区块，彻底消除掉头折返时的磁盘读取卡顿。",
     "Tooltip_MPOptim_JVM_AsyncModelCompile": "在后台多线程编译角色服装、护甲及车辆3D纹理，消除切换装备时的瞬间掉帧。",
@@ -350,5 +352,12 @@
     "UI_MPOptim_Tooltip_Weather_DisableTreeWind": "关闭暴风雨期间树木网格的重心形变摆动计算，防止穿越森林公路时发生卡顿。",
     "UI_ModOptions_Corpse_IntervalHours": "尸体清理间隔时间",
     "Tooltip_MPOptim_Corpse_IntervalHours": "两次自动清理僵尸尸体之间的游戏内小时数。",
-    "UI_MPOptim_Tooltip_Corpse_IntervalHours": "两次自动清理僵尸尸体之间的游戏内小时数。"
+    "UI_MPOptim_Tooltip_Corpse_IntervalHours": "两次自动清理僵尸尸体之间的游戏内小时数。",
+    "UI_ModOptions_JVM_ChunkCacheSize": "深度内存区块缓存大小",
+    "UI_MPOptim_Tooltip_JVM_ChunkCacheSize": "保留在内存缓存中的世界区块数量，实现零卡顿的快速公路流式加载。",
+    "UI_ModOptions_JVM_GCThresholdMB": "JVM 堆内存清理阈值",
+    "UI_MPOptim_Tooltip_JVM_GCThresholdMB": "后台温和垃圾回收触发前的目标内存阈值。",
+    "UI_MPOptim_Tooltip_PresetLoad": "加载选定的自定义预设方案并立即应用所有优化配置。",
+    "UI_MPOptim_Tooltip_PresetSave": "将当前的复选框与滑块参数保存为新的独立预设档案。",
+    "UI_MPOptim_Tooltip_PresetDelete": "永久删除选定的自定义预设方案。"
 }

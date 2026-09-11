@@ -67,6 +67,7 @@ local function registerNativeOptions()
         opt:addTickBox("GFX_EnforceTextureCompression", "Enforce Texture Compression (VRAM Saver)", (MPOptim.Config and MPOptim.Config.Get("GFX_EnforceTextureCompression")) ~= false, "Forces texture compression in options.ini to cut VRAM usage in half")
         opt:addTickBox("GFX_DynamicReflections", "Dynamic Road & Puddle Reflections", (MPOptim.Config and MPOptim.Config.Get("GFX_DynamicReflections")) == true, "Disabling eliminates secondary reflection passes on roads and puddles, curing Build 42 driving stutter")
         opt:addTickBox("GFX_ModelLighting", "3D Model Dynamic Vertex Lighting", (MPOptim.Config and MPOptim.Config.Get("GFX_ModelLighting")) ~= false, "Disabling shades 3D characters with ambient light, saving GPU vertex shader passes")
+        opt:addTickBox("Threaded_Lighting", "[EXPERIMENTAL] Multi-Threaded Lighting", (MPOptim.Config and MPOptim.Config.Get("Threaded_Lighting")) ~= false, "Offloads real-time dynamic lighting and shadow math to background worker threads")
         opt:addTickBox("Horde_ThrottleStaticAnims", "Throttle Idle/Static Animations (15 FPS)", (MPOptim.Config and MPOptim.Config.Get("Horde_ThrottleStaticAnims")) == true, "Clamps idle/standing animation update rate to 15 FPS to save CPU")
         opt:addTickBox("Horde_AccelerateAnimFalloff", "Accelerate Distant Zombie Animation LOD", (MPOptim.Config and MPOptim.Config.Get("Horde_AccelerateAnimFalloff")) == true, "Transitions distant horde zombies into stepped LOD animation poses sooner")
         opt:addTickBox("Weather_ClampRainParticles", "Clamp Rain & Splash Particle Pool (40 Objects)", (MPOptim.Config and MPOptim.Config.Get("Weather_ClampRainParticles")) == true, "Caps active splash and raindrop objects to 40 max during storms")
@@ -101,6 +102,7 @@ local function registerNativeOptions()
         opt:addTickBox("JVM_DeepChunkCache", "Deep RAM Chunk Cache (Zero Disk I/O)", (MPOptim.Config and MPOptim.Config.Get("JVM_DeepChunkCache")) ~= false, "Retains visited road and town chunks in RAM")
         opt:addTickBox("JVM_AsyncModelCompile", "Asynchronous 3D Model Compiling", (MPOptim.Config and MPOptim.Config.Get("JVM_AsyncModelCompile")) ~= false, "Compiles character clothing and vehicle textures in background threads")
         opt:addTickBox("JVM_HordeHibernation", "Distant Horde Spatial Hibernation", (MPOptim.Config and MPOptim.Config.Get("JVM_HordeHibernation")) ~= false, "Hibernates distant off-screen zombie pathfinding state in RAM")
+        opt:addTickBox("JVM_BytecodeBloodCap", "Bytecode Blood Overdraw Cap", (MPOptim.Config and MPOptim.Config.Get("JVM_BytecodeBloodCap")) ~= false, "Directly patches IsoGridSquare.splatBlood in JVM bytecode to eliminate chunk FBO texture stalls")
 
         opt.apply = function(self)
             local keyOpt = self:getOption("OptimizerHotkey")
@@ -110,14 +112,14 @@ local function registerNativeOptions()
 
             for _, optKey in ipairs({
                 "UI_ShowContextMenu", "UI_ShowHUD", "UI_ShowNotifications", "UI_FastInventory",
-                "GFX_EnforceTextureCompression", "GFX_DynamicReflections", "GFX_ModelLighting", "Horde_ThrottleStaticAnims", "Horde_AccelerateAnimFalloff",
+                "GFX_EnforceTextureCompression", "GFX_DynamicReflections", "GFX_ModelLighting", "Threaded_Lighting", "Horde_ThrottleStaticAnims", "Horde_AccelerateAnimFalloff",
                 "Weather_ClampRainParticles", "Fire_ThrottleParticles",
                 "Blood_CapPerTile", "Corpse_CullShadows", "Weather_Optimize", "Weather_PuddleOptimization", "Weather_DisableTreeWind",
                 "Vehicle_PhysicsSleep", "Vehicle_ChunkPriorityMode", "Vehicle_LimitDriveZoom", "Vehicle_PreDrivePurge", "Vehicle_ScaleLightingFPS",
                 "Vehicle_SuspendBackgroundCleanups", "Vehicle_ThreadedModelSlots",
                 "GC_SmartIdleGC", "GC_PurgeThresholdMB", "Blood_AutoClean", "Corpse_AutoClean", "Corpse_IntervalHours", "Debris_AutoClean",
                 "Animal_CleanTracks", "Base_ProtectPlayerStructures",
-                "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_AsyncModelCompile", "JVM_HordeHibernation"
+                "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_BytecodeBloodCap"
             }) do
                 local o = self:getOption(optKey)
                 if o and o.value ~= nil then

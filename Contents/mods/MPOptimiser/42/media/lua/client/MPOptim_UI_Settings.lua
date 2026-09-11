@@ -469,7 +469,7 @@ function MPOptim_SettingsUI:createChildren()
     agentLabel:initialise()
     self.panelTab1:addChild(agentLabel)
 
-    local customHeader = ISLabel:new(startBtnX, presetSectionY, fontH, "[*] CUSTOM USER PRESET PROFILES", 0.30, 0.85, 1.0, 1.0, smallFont, true)
+    local customHeader = ISLabel:new(startBtnX, presetSectionY, fontH, MPOptim.GetText("UI_MPOptim_CustomPresetsHeader", "[*] CUSTOM USER PRESET PROFILES"), 0.30, 0.85, 1.0, 1.0, smallFont, true)
     customHeader:initialise()
     self.panelTab1:addChild(customHeader)
 
@@ -522,7 +522,7 @@ function MPOptim_SettingsUI:createChildren()
     local actSpacing = math.floor(6 * scale)
     local actBtnW = math.floor((leftColW - (actSpacing * 2)) / 3)
 
-    local loadBtn = ISButton:new(startBtnX + (0 * (actBtnW + actSpacing)), actRowY, actBtnW, actBtnH, "[>] LOAD", self, function(s)
+    local loadBtn = ISButton:new(startBtnX + (0 * (actBtnW + actSpacing)), actRowY, actBtnW, actBtnH, MPOptim.GetText("UI_MPOptim_PresetLoad", "[>] LOAD"), self, function(s)
         local selName = getComboSelectedName(s.presetCombo)
         if selName and selName ~= "No Saved Presets" then
             if MPOptim.CustomPresets and MPOptim.CustomPresets.LoadPreset then
@@ -538,10 +538,10 @@ function MPOptim_SettingsUI:createChildren()
     loadBtn:initialise()
     loadBtn.backgroundColor = { r = 0.10, g = 0.40, b = 0.50, a = 0.95 }
     loadBtn.borderColor = { r = 0.20, g = 0.75, b = 0.85, a = 1.0 }
-    loadBtn.tooltip = "Loads the selected custom preset profile and applies all configured optimization toggles immediately."
+    loadBtn.tooltip = MPOptim.GetText("UI_MPOptim_Tooltip_PresetLoad", "Loads the selected custom preset profile and applies all configured optimization toggles immediately.")
     self.panelTab1:addChild(loadBtn)
 
-    local saveBtn = ISButton:new(startBtnX + (1 * (actBtnW + actSpacing)), actRowY, actBtnW, actBtnH, "[+] SAVE AS", self, function(s)
+    local saveBtn = ISButton:new(startBtnX + (1 * (actBtnW + actSpacing)), actRowY, actBtnW, actBtnH, MPOptim.GetText("UI_MPOptim_PresetSave", "[+] SAVE AS"), self, function(s)
         local sw, sh = getCore():getScreenWidth(), getCore():getScreenHeight()
         local boxW = math.max(340, math.floor(380 * scale))
         local boxH = math.max(150, math.floor(160 * scale))
@@ -568,10 +568,10 @@ function MPOptim_SettingsUI:createChildren()
     saveBtn:initialise()
     saveBtn.backgroundColor = { r = 0.35, g = 0.25, b = 0.10, a = 0.95 }
     saveBtn.borderColor = { r = 0.85, g = 0.60, b = 0.20, a = 1.0 }
-    saveBtn.tooltip = "Saves your current checkbox and slider settings into a new named preset profile."
+    saveBtn.tooltip = MPOptim.GetText("UI_MPOptim_Tooltip_PresetSave", "Saves your current checkbox and slider settings into a new named preset profile.")
     self.panelTab1:addChild(saveBtn)
 
-    local delBtn = ISButton:new(startBtnX + (2 * (actBtnW + actSpacing)), actRowY, actBtnW, actBtnH, "[X] DELETE", self, function(s)
+    local delBtn = ISButton:new(startBtnX + (2 * (actBtnW + actSpacing)), actRowY, actBtnW, actBtnH, MPOptim.GetText("UI_MPOptim_PresetDelete", "[X] DELETE"), self, function(s)
         local selName = getComboSelectedName(s.presetCombo)
         if selName and selName ~= "No Saved Presets" then
             if MPOptim.CustomPresets and MPOptim.CustomPresets.DeletePreset then
@@ -587,7 +587,7 @@ function MPOptim_SettingsUI:createChildren()
     delBtn:initialise()
     delBtn.backgroundColor = { r = 0.45, g = 0.15, b = 0.15, a = 0.95 }
     delBtn.borderColor = { r = 0.85, g = 0.30, b = 0.30, a = 1.0 }
-    delBtn.tooltip = "Permanently deletes the selected custom preset profile."
+    delBtn.tooltip = MPOptim.GetText("UI_MPOptim_Tooltip_PresetDelete", "Permanently deletes the selected custom preset profile.")
     self.panelTab1:addChild(delBtn)
 
     local shaderTickY = actRowY + actBtnH + math.floor(14 * scale)
@@ -744,7 +744,6 @@ function MPOptim_SettingsUI:createChildren()
     addTick(self.panelTab2, startOptY + (2 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_UI_ShowNotifications", "Show Overhead Status Text During Sweeps"), "UI_ShowNotifications", nil, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_UI_ShowNotifications", "Displays green overhead text whenever automated cleanups or memory purges occur."))
     addTick(self.panelTab2, startOptY + (3 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_GC_SmartIdleGC", "Smart Idle Garbage Collection (RAM Purge)"), "GC_SmartIdleGC", nil, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_GC_SmartIdleGC", "Runs gentle memory sweeps only during sleep, reading, and safe resting when RAM exceeds your threshold."))
     addTick(self.panelTab2, startOptY + (4 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_ModShield_Enabled", "Enable ModShield (3rd-Party Mod Protection)"), "ModShield_Enabled", nil, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_ModShield_Enabled", "Comprehensive protection suite against 3rd-party mods: neutralizes forced GC freezes during combat/driving, throttles disk I/O log spam (100% preserves errors), and shields Build 42 vehicle mechanics from malformed recipe crashes."))
-    addTick(self.panelTab2, startOptY + (8 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Plumbing_ThrottleWaterPipes", "Water Pipes & Plumbing Throttler (Fixes Lag)"), "Plumbing_ThrottleWaterPipes", nil, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Plumbing_ThrottleWaterPipes", "Throttles expensive 60 Hz per-frame pipe flow loops in Water Pipes and irrigation mods down to 1 Hz, dropping CPU load by 98% with zero gameplay loss."))
     addTick(self.panelTab2, startOptY + (5 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_GFX_EnforceTextureCompression", "Enforce Texture Compression (50+ percent VRAM)"), "GFX_EnforceTextureCompression", function(sel)
         if sel and MPOptim.Utils and MPOptim.Utils.CheckAndEnforceTextureCompression then
             MPOptim.Utils.CheckAndEnforceTextureCompression()
@@ -779,8 +778,9 @@ function MPOptim_SettingsUI:createChildren()
     addTick(self.panelTab2, startOptY + (7 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Threaded_Lighting", "[EXPERIMENTAL] Multi-Threaded Dynamic Lighting"), "Threaded_Lighting", function(sel)
         if MPOptim.HordeOptimizer and MPOptim.HordeOptimizer.Apply then MPOptim.HordeOptimizer.Apply() end
     end, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Threaded_Lighting", "[EXPERIMENTAL] Offloads real-time dynamic lighting and shadow propagation math to background worker threads. WARNING: May cause main-thread sync stalls during intense combat."))
+    addTick(self.panelTab2, startOptY + (8 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Plumbing_ThrottleWaterPipes", "Water Pipes & Plumbing Throttler (Fixes Lag)"), "Plumbing_ThrottleWaterPipes", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Plumbing_ThrottleWaterPipes", "Throttles expensive 60 Hz per-frame pipe flow loops in Water Pipes and irrigation mods down to 1 Hz, dropping CPU load by 98% with zero gameplay loss."))
 
-    local stepY2 = startOptY + (8 * self.tickSpacing) + math.floor(14 * scale)
+    local stepY2 = startOptY + (9 * self.tickSpacing) + math.floor(14 * scale)
     local stepGap = math.max(36, math.floor(fontH + 16 * scale))
     addStepper(self.panelTab2, stepY2 + (0 * stepGap), MPOptim.GetText("UI_ModOptions_Lighting_FPS", "Dynamic Lighting Refresh Rate"), "Lighting_FPS", { 15, 20, 30, 45, 60 }, function(v) return tostring(v) .. " FPS" end, MPOptim.GetText("UI_MPOptim_Tooltip_Lighting_FPS", "Controls the target update framerate for dynamic lighting propagation. Lower values (15-30 FPS) save huge CPU cycles."))
     addStepper(self.panelTab2, stepY2 + (1 * stepGap), MPOptim.GetText("UI_ModOptions_GC_PurgeThresholdMB", "GC Purge RAM Threshold"), "GC_PurgeThresholdMB", { 1200, 1600, 2000, 2400, 2800, 3200, 4000 }, function(v) return tostring(v) .. " MB" end, MPOptim.GetText("UI_MPOptim_Tooltip_GC_PurgeThresholdMB", "Memory usage cutoff threshold required before Smart Idle Garbage Collection triggers a background sweep."))
@@ -836,7 +836,14 @@ function MPOptim_SettingsUI:createChildren()
     addTick(self.panelTab4, startOptY + (3 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Corpse_AutoClean", "Enable Automated Corpse Cleanup"), "Corpse_AutoClean", nil, nil, nil, MPOptim.GetText("UI_MPOptim_Tooltip_Corpse_AutoClean", "Periodically purges zombie bodies outside safehouses based on age."))
     addTick(self.panelTab4, startOptY + (4 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Corpse_CleanEmptyOnly", "Only Clean Empty Corpses (0 items in inventory)"), "Corpse_CleanEmptyOnly", nil, nil, nil, MPOptim.GetText("UI_MPOptim_Tooltip_Corpse_CleanEmptyOnly", "Only purges bodies that have already been completely looted by players."))
     addTick(self.panelTab4, startOptY + (5 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Corpse_CleanJunkOnly", "Clean Junk Corpses (Preserves weapons, bags, ammo & keys)"), "Corpse_CleanJunkOnly", nil, nil, nil, MPOptim.GetText("UI_MPOptim_Tooltip_Corpse_CleanJunkOnly", "Cleans corpses with junk clothes/pens, but strictly preserves any corpse with weapons, bags, ammo, or keys."))
-    addTick(self.panelTab4, startOptY + (6 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Corpse_CullShadows", "Cull Dynamic 3D Shadows on Dead Corpses"), "Corpse_CullShadows", nil, nil, nil, MPOptim.GetText("UI_MPOptim_Tooltip_Corpse_CullShadows", "Disables dynamic shadow projection math on dead zombie bodies, saving massive draw calls in graveyard areas."))
+    addTick(self.panelTab4, startOptY + (6 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Corpse_CullShadows", "Cull Dynamic 3D Shadows on Dead Corpses"), "Corpse_CullShadows", function(sel)
+        if getCore then
+            local core = getCore()
+            if core and core.setOptionCorpseShadows then
+                core:setOptionCorpseShadows(not sel)
+            end
+        end
+    end, nil, nil, MPOptim.GetText("UI_MPOptim_Tooltip_Corpse_CullShadows", "Disables dynamic shadow projection math on dead zombie bodies, saving massive draw calls in graveyard areas."))
 
     local stepY4 = startOptY + (7 * self.tickSpacing) + math.floor(20 * scale)
     addStepper(self.panelTab4, stepY4 + (0 * stepGap), MPOptim.GetText("UI_ModOptions_Blood_CleanRadius", "Blood Clean Radius"), "Blood_CleanRadius", { 15, 20, 30, 40, 50, 60 }, function(v) return tostring(v) .. " Tiles" end, MPOptim.GetText("UI_MPOptim_Tooltip_Blood_CleanRadius", "Distance in tiles around the player to perform blood cleanup sweeps."))
@@ -987,8 +994,10 @@ function MPOptim_SettingsUI:createChildren()
 
     addTick(self.panelTab7, jvmControlsY + (3 * self.tickSpacing), jvmPrefix .. MPOptim.GetText("UI_ModOptions_JVM_StreamBufferBoost", "Direct NIO Vehicle Stream Buffers"), "JVM_StreamBufferBoost", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_StreamBufferBoost", "Enables 128KB page-aligned direct NIO memory stream buffers and ChunkBufferPool for stutter-free road chunk loading at 70+ mph.") .. jvmTipLock)
 
+    addTick(self.panelTab7, jvmControlsY + (4 * self.tickSpacing), jvmPrefix .. MPOptim.GetText("UI_ModOptions_JVM_BytecodeBloodCap", "Bytecode Blood Overdraw Cap (Zero FBO Staleness)"), "JVM_BytecodeBloodCap", nil, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_BytecodeBloodCap", "Directly patches IsoGridSquare.splatBlood in JVM bytecode to instantly return if a tile already has blood. Completely eliminates chunk FBO texture rebinding stalls in high-kill combats.") .. jvmTipLock)
+
     if not isJvmActive then
-        local jvmKeys = { "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_GLStateOptimizer", "JVM_PowerShield", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_KahluaGCPacer", "JVM_StreamBufferBoost" }
+        local jvmKeys = { "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_GLStateOptimizer", "JVM_PowerShield", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_KahluaGCPacer", "JVM_StreamBufferBoost", "JVM_BytecodeBloodCap" }
         for _, k in ipairs(jvmKeys) do
             local box = self.tickboxMap[k]
             if box then
@@ -1005,9 +1014,9 @@ function MPOptim_SettingsUI:createChildren()
         end
     end
 
-    local stepY7 = jvmControlsY + (4 * self.tickSpacing) + math.floor(14 * scale)
-    addStepper(self.panelTab7, stepY7 + (0 * stepGap), "Deep Chunk RAM Cache Size", "JVM_ChunkCacheSize", { 250, 500, 750, 1000, 1500 }, function(v) return tostring(v) .. " Chunks" end, "Number of world chunks retained in RAM cache for instant zero-lag road streaming.")
-    addStepper(self.panelTab7, stepY7 + (1 * stepGap), "JVM Heap Clean Threshold", "JVM_GCThresholdMB", { 4000, 6000, 8000, 10000, 12000 }, function(v) return tostring(v) .. " MB" end, "Target memory threshold before gentle background GC sweeps cycle.")
+    local stepY7 = jvmControlsY + (5 * self.tickSpacing) + math.floor(14 * scale)
+    addStepper(self.panelTab7, stepY7 + (0 * stepGap), MPOptim.GetText("UI_ModOptions_JVM_ChunkCacheSize", "Deep Chunk RAM Cache Size"), "JVM_ChunkCacheSize", { 250, 500, 750, 1000, 1500 }, function(v) return tostring(v) .. " Chunks" end, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_ChunkCacheSize", "Number of world chunks retained in RAM cache for instant zero-lag road streaming."))
+    addStepper(self.panelTab7, stepY7 + (1 * stepGap), MPOptim.GetText("UI_ModOptions_JVM_GCThresholdMB", "JVM Heap Clean Threshold"), "JVM_GCThresholdMB", { 4000, 6000, 8000, 10000, 12000 }, function(v) return tostring(v) .. " MB" end, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_GCThresholdMB", "Target memory threshold before gentle background GC sweeps cycle."))
     makeScrollable(self.panelTab7, stepY7 + (2 * stepGap) + math.floor(35 * scale))
 
     self.panelTab8 = ISPanel:new(subX, subY, subW, subH)
@@ -1071,7 +1080,7 @@ function MPOptim_SettingsUI:createChildren()
     -- Refresh Profiler Button
     local reScanBtnW = math.floor(170 * scale)
     local reScanBtnH = math.max(28, math.floor(fontH + 10 * scale))
-    self.reScanBtn = ISButton:new(math.floor(16 * scale), math.floor(12 * scale), reScanBtnW, reScanBtnH, "[*] Re-Scan Mod Memory", self, function(s)
+    self.reScanBtn = ISButton:new(math.floor(16 * scale), math.floor(12 * scale), reScanBtnW, reScanBtnH, MPOptim.GetText("UI_MPOptim_ProfilerRescan", "[*] Re-Scan Mod Memory"), self, function(s)
         s:refreshModProfiler()
     end)
     self.reScanBtn:initialise()

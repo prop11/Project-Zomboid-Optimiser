@@ -14,11 +14,21 @@ MPOptim.ServerManager = MPOptim.ServerManager or {}
 
 local serverHoursCount = 0
 
+local function isTableEmpty(tbl)
+    if not tbl then return true end
+    for _ in pairs(tbl) do
+        return false
+    end
+    return true
+end
+
 local function initServerProfile()
     if MPOptim.Config and MPOptim.Presets and MPOptim.Presets.Server then
-        if not MPOptim.Config.Current or next(MPOptim.Config.Current) == nil then
-            MPOptim.Config.ApplyPreset("Server")
-            print("[MPOptimizer] Server Profile automatically activated for Dedicated Server.")
+        if not MPOptim.Config.Current or isTableEmpty(MPOptim.Config.Current) then
+            if type(MPOptim.Config.ApplyPreset) == "function" then
+                MPOptim.Config.ApplyPreset("Server")
+                print("[MPOptimizer] Server Profile automatically activated for Dedicated Server.")
+            end
         end
     end
 end

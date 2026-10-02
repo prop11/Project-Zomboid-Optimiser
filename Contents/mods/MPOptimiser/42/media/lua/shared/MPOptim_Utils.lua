@@ -9,6 +9,21 @@ require "MPOptim_Config"
 
 MPOptim = MPOptim or {}
 MPOptim.Utils = MPOptim.Utils or {}
+
+-- Kahlua Virtual Machine compatibility: Provide standard Lua 'next' built-in if absent
+if not next then
+    next = function(tbl, key)
+        if type(tbl) ~= "table" then return nil end
+        local found = (key == nil)
+        for k, v in pairs(tbl) do
+            if found then return k, v end
+            if k == key then found = true end
+        end
+        return nil
+    end
+    if _G then _G.next = next end
+end
+
 function MPOptim.GetText(key, defaultVal)
     if getText and key then
         local txt = getText(key)

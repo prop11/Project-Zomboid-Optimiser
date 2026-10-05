@@ -1,4 +1,4 @@
-﻿#version 120
+#version 120
 
 varying vec3 vertColour; 
 varying vec3 vertNormal;
@@ -16,9 +16,6 @@ uniform sampler2D TextureDamage1Overlay;
 uniform sampler2D TextureDamage1Shell;
 uniform sampler2D TextureDamage2Overlay;
 uniform sampler2D TextureDamage2Shell;
-uniform sampler2D TextureReflectionA;
-uniform sampler2D TextureReflectionB;
-uniform vec3 ReflectionParam; // x: 1-A, 0 - B; y - reflection windows; z - reflection body
 
 uniform mat4 TextureUninstall1;
 uniform mat4 TextureUninstall2;
@@ -48,7 +45,6 @@ uniform vec3 Light4Direction;
 uniform vec3 Light4Colour;
 
 #include "util/math"
-#include "util/SphereMap"
 #include "util/dommat4"
 
 #include "vehicle_common.frag"
@@ -142,15 +138,6 @@ void main()
 	fragHSV.z = clamp(fragHSV.z + TexturePainColor.z - 0.5, 0.0, 0.9999);
 	fragHSV.xyz = mod(fragHSV.xyz, 1.0);
 	col = mix(col, hsv2rgb(fragHSV), 1.0-tex.a);
-	
-	float ref_en = texen1[1][2] + texen1[1][3] + texen1[2][0] + texen1[2][1] + texen1[2][2] + texen1[2][3];
-	vec2 refTexCoord = SphereMap( normalize(normal), positionEye.xyz );
-	vec3 texRefA = texture2D(TextureReflectionA, refTexCoord).xyz;
-	vec3 texRefB = texture2D(TextureReflectionB, refTexCoord).xyz;
-	vec3 texRef = mix(texRefB, texRefA, ReflectionParam.x);
-	
-	col = mix(col, texRef, ref_en*(0.1+ReflectionParam.y*0.5)); // 0.6 max 0.1 min
-	col = mix(col, texRef/4.0, (1.0-ref_en)*(0.05 + ReflectionParam.z*0.3)); // 0.2 max 
 
 	col = mix(col, texColorRust.xyz, texColorRust.a*TextureRustA);
 
@@ -183,4 +170,3 @@ void main()
 
 	gl_FragColor = vec4(col, TexturePainColor.a);
 }
-

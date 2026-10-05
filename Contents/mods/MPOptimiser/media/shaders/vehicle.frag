@@ -1,4 +1,4 @@
-﻿#version 110
+#version 110
 
 varying vec3 vertColour; 
 varying vec3 vertNormal;
@@ -15,9 +15,6 @@ uniform sampler2D TextureDamage1Overlay;
 uniform sampler2D TextureDamage1Shell;
 uniform sampler2D TextureDamage2Overlay;
 uniform sampler2D TextureDamage2Shell;
-uniform sampler2D TextureReflectionA;
-uniform sampler2D TextureReflectionB;
-uniform vec3 ReflectionParam; // x: 1-A, 0 - B; y - reflection windows; z - reflection body
 
 uniform mat4 TextureUninstall1;
 uniform mat4 TextureUninstall2;
@@ -76,7 +73,6 @@ const vec3 colZone26 = vec3(1.00, 0.00, 0.50); // m12 Hoot FF007F
 const vec3 colZone27 = vec3(0.00, 1.00, 0.50); // m22 Boot 00FF7F
 
 #include "util/math"
-#include "util/SphereMap"
 #include "util/dommat4"
 
 void main()
@@ -84,7 +80,6 @@ void main()
 	vec3 normal = normalize(vertNormal);
 	vec4 tex = texture2D(Texture0, texCoords);
 	
-	//vec4 tex = texture(TextureReflection, vec3(texCoords, 1.0f));
 	vec3 col = tex.xyz;
 	float dotprod;
 	float pixelVal = (col.x + col.y + col.z) / 3.0;
@@ -122,7 +117,6 @@ void main()
 	lighting.x = clamp(lighting.x, 0.0, 1.0);
 	lighting.y = clamp(lighting.y, 0.0, 1.0);
 	lighting.z = clamp(lighting.z, 0.0, 1.0);
-
 	
 	mat4 texen1 = mat4( 0.0 );
 	mat4 texen2 = mat4( 0.0 );
@@ -166,15 +160,7 @@ void main()
     fragHSV.xyz = mod(fragHSV.xyz, 1.0);
 	col = mix(col, hsv2rgb(fragHSV), 1.0-tex.a);
 	
-	float ref_en = texen1[1][2] + texen1[1][3] + texen1[2][0] + texen1[2][1] + texen1[2][2] + texen1[2][3];
-    vec2 refTexCoord = SphereMap( normalize(normal), positionEye.xyz );
-	vec3 texRefA = texture2D(TextureReflectionA, refTexCoord).xyz;
-	vec3 texRefB = texture2D(TextureReflectionB, refTexCoord).xyz;
-	vec3 texRef = mix(texRefB, texRefA, ReflectionParam.x);
-	
-	col = mix(col, texRef, ref_en*(0.1+ReflectionParam.y*0.5)); // 0.6 max 0.1 min
-	col = mix(col, texRef/4.0, (1.0-ref_en)*(0.05 + ReflectionParam.z*0.3)); // 0.2 max 
-
+	col = mix(col, texColorLights.xyz, texColorLights.a*t1en);
 	col = mix(col, texColorRust.xyz, texColorRust.a*TextureRustA);
 	
 	fragHSV = rgb2hsv(texColorDamage1Shell.xyz).xyz;
@@ -192,13 +178,10 @@ void main()
     fragHSV.xyz = mod(fragHSV.xyz, 1.0);
 	col = mix(col, hsv2rgb(fragHSV), texColorDamage2Shell.a*t3en);
 	col = mix(col, texColorDamage2Overlay.xyz, texColorDamage2Overlay.a*t3en);
-	
+
 	col = mix(col, vec3(0.2), t4en);
 
 	col *= lighting * TintColourNew;
-
-	// Do this after ambient lighting so active headlights and taillights aren't dimmed.
-	col = mix(col, texColorLights.xyz, texColorLights.a*t1en);
 
 	gl_FragColor = vec4(col ,TexturePainColor.a);
 }

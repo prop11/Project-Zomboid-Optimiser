@@ -858,6 +858,9 @@ local function onMasterHeartbeat()
     end
 end
 
+if MPOptim.ModGovernor and MPOptim.ModGovernor.RegisterInternal then
+    MPOptim.ModGovernor.RegisterInternal(onMasterHeartbeat)
+end
 Events.OnTick.Add(onMasterHeartbeat)
 
 

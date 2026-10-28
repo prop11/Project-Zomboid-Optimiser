@@ -8,7 +8,7 @@
 MPOptim = MPOptim or {}
 MPOptim.Config = MPOptim.Config or {}
 MPOptim.Config.Current = MPOptim.Config.Current or {}
-MPOptim.Version = "1.4.4"
+MPOptim.Version = "1.4.3"
 
 -- Default Configuration Table (Philosophy: High performance impact with ZERO/low visual gameplay degradation by default)
 MPOptim.DefaultConfig = {
@@ -22,6 +22,11 @@ MPOptim.DefaultConfig = {
     JVM_PowerShield = true,
     JVM_StreamBufferBoost = true,
     JVM_BytecodeBloodCap = true,
+    JVM_PathfindNativeAStar = true,
+    JVM_PathfindBudget = true,
+    JVM_PathfindSquareMerge = true,
+    JVM_PathfindVehicleThrottle = true,
+    JVM_PathfindBudgetMs = 2,
     JVM_ChunkCacheSize = 500,
     JVM_GCThresholdMB = 6000,
 
@@ -47,6 +52,8 @@ MPOptim.DefaultConfig = {
     GC_AutoPurge = false,
     GC_SmartIdleGC = false,
     ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
     
     GC_PurgeThresholdMB = 2800,
@@ -88,9 +95,13 @@ MPOptim.DefaultConfig = {
     Threaded_Sound = false,             -- Multi-Threaded 3D Audio (Default: Off to prevent FMOD channel cutouts)
     FBORender_CheapOcclusion = true,
     GFX_BuildingInteriorCull = true,
+    Vehicle_PhysicsSleep = false,
     GFX_DynamicZoomLOD = true,
     Animal_ThrottleDistant = true,
+    GFX_ForestCanopyCull = true,
+    Combat_BurstSmoother = true,
     Horde_AudioConcurrencyLimit = true,
+    Horde_CullDistantAttachments = true,
     Horde_StaggeredAITicking = true,    -- Fast Building Cutaway Occlusion Math
     Sound_AutoPruneQueue = false,       -- World Sound Queue Pruner (Default: Off)
     FPS_BackgroundThrottle = false,     -- Smart Alt-Tab & Background FPS Limiter (20 FPS when unfocused)
@@ -260,9 +271,13 @@ MPOptim.Presets = {
         Threaded_Sound = false,
         FBORender_CheapOcclusion = true,
     GFX_BuildingInteriorCull = true,
+    Vehicle_PhysicsSleep = false,
     GFX_DynamicZoomLOD = true,
     Animal_ThrottleDistant = true,
+    GFX_ForestCanopyCull = true,
+    Combat_BurstSmoother = true,
     Horde_AudioConcurrencyLimit = true,
+    Horde_CullDistantAttachments = true,
     Horde_StaggeredAITicking = true,
         Sound_AutoPruneQueue = false,
         FPS_BackgroundThrottle = false,
@@ -281,6 +296,8 @@ MPOptim.Presets = {
         Fire_Optimize = true,
         GC_SmartIdleGC = false,
     ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
     
         Vehicle_ChunkPriorityMode = true,
@@ -307,18 +324,30 @@ MPOptim.Presets = {
     },
     Potato = {
         GFX_BuildingInteriorCull = true,
+        Combat_BurstSmoother = true,
         Horde_AudioConcurrencyLimit = true,
+        Horde_CullDistantAttachments = true,
         Horde_StaggeredAITicking = true,
         ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
         
+        Vehicle_PhysicsSleep = false,
         GFX_DynamicZoomLOD = true,
         Animal_ThrottleDistant = true,
+        GFX_ForestCanopyCull = true,
+    Combat_BurstSmoother = true,
     Horde_AudioConcurrencyLimit = true,
+    Horde_CullDistantAttachments = true,
     Horde_StaggeredAITicking = true,
+    Vehicle_PhysicsSleep = false,
     GFX_DynamicZoomLOD = true,
     Animal_ThrottleDistant = true,
+    GFX_ForestCanopyCull = true,
+    Combat_BurstSmoother = true,
     Horde_AudioConcurrencyLimit = true,
+    Horde_CullDistantAttachments = true,
     Horde_StaggeredAITicking = true,
         Blood_CapPerTile = true,
         Blood_MaxPerTile = 1,
@@ -346,9 +375,13 @@ MPOptim.Presets = {
         Threaded_Sound = false,
         FBORender_CheapOcclusion = true,
     GFX_BuildingInteriorCull = true,
+    Vehicle_PhysicsSleep = false,
     GFX_DynamicZoomLOD = true,
     Animal_ThrottleDistant = true,
+    GFX_ForestCanopyCull = true,
+    Combat_BurstSmoother = true,
     Horde_AudioConcurrencyLimit = true,
+    Horde_CullDistantAttachments = true,
     Horde_StaggeredAITicking = true,
         Sound_AutoPruneQueue = false,
         FPS_BackgroundThrottle = false,
@@ -367,6 +400,8 @@ MPOptim.Presets = {
         Fire_Optimize = true,
         GC_SmartIdleGC = true,
         ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
         
         Vehicle_ChunkPriorityMode = true,
@@ -393,18 +428,30 @@ MPOptim.Presets = {
     },
     Experimental = {
         GFX_BuildingInteriorCull = true,
+        Combat_BurstSmoother = true,
         Horde_AudioConcurrencyLimit = true,
+        Horde_CullDistantAttachments = true,
         Horde_StaggeredAITicking = true,
         ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
         
+        Vehicle_PhysicsSleep = false,
         GFX_DynamicZoomLOD = true,
         Animal_ThrottleDistant = true,
+        GFX_ForestCanopyCull = true,
+    Combat_BurstSmoother = true,
     Horde_AudioConcurrencyLimit = true,
+    Horde_CullDistantAttachments = true,
     Horde_StaggeredAITicking = true,
+    Vehicle_PhysicsSleep = false,
     GFX_DynamicZoomLOD = true,
     Animal_ThrottleDistant = true,
+    GFX_ForestCanopyCull = true,
+    Combat_BurstSmoother = true,
     Horde_AudioConcurrencyLimit = true,
+    Horde_CullDistantAttachments = true,
     Horde_StaggeredAITicking = true,
         Blood_CapPerTile = true,
         Blood_MaxPerTile = 1,
@@ -432,9 +479,13 @@ MPOptim.Presets = {
         Threaded_Sound = false,
         FBORender_CheapOcclusion = true,
     GFX_BuildingInteriorCull = true,
+    Vehicle_PhysicsSleep = false,
     GFX_DynamicZoomLOD = true,
     Animal_ThrottleDistant = true,
+    GFX_ForestCanopyCull = true,
+    Combat_BurstSmoother = true,
     Horde_AudioConcurrencyLimit = true,
+    Horde_CullDistantAttachments = true,
     Horde_StaggeredAITicking = true,
         Sound_AutoPruneQueue = false,
         FPS_BackgroundThrottle = false,
@@ -453,6 +504,8 @@ MPOptim.Presets = {
         Fire_Optimize = true,
         GC_SmartIdleGC = true,
         ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
         
         Vehicle_ChunkPriorityMode = true,
@@ -479,18 +532,30 @@ MPOptim.Presets = {
     },
     Server = {
         GFX_BuildingInteriorCull = true,
+        Combat_BurstSmoother = true,
         Horde_AudioConcurrencyLimit = true,
+        Horde_CullDistantAttachments = true,
         Horde_StaggeredAITicking = true,
         ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
         
+        Vehicle_PhysicsSleep = false,
         GFX_DynamicZoomLOD = true,
         Animal_ThrottleDistant = true,
+        GFX_ForestCanopyCull = true,
+    Combat_BurstSmoother = true,
     Horde_AudioConcurrencyLimit = true,
+    Horde_CullDistantAttachments = true,
     Horde_StaggeredAITicking = true,
+    Vehicle_PhysicsSleep = false,
     GFX_DynamicZoomLOD = true,
     Animal_ThrottleDistant = true,
+    GFX_ForestCanopyCull = true,
+    Combat_BurstSmoother = true,
     Horde_AudioConcurrencyLimit = true,
+    Horde_CullDistantAttachments = true,
     Horde_StaggeredAITicking = true,
         Blood_CapPerTile = true,
         Blood_MaxPerTile = 3,
@@ -518,9 +583,13 @@ MPOptim.Presets = {
         Threaded_Sound = false,
         FBORender_CheapOcclusion = true,
     GFX_BuildingInteriorCull = true,
+    Vehicle_PhysicsSleep = false,
     GFX_DynamicZoomLOD = true,
     Animal_ThrottleDistant = true,
+    GFX_ForestCanopyCull = true,
+    Combat_BurstSmoother = true,
     Horde_AudioConcurrencyLimit = true,
+    Horde_CullDistantAttachments = true,
     Horde_StaggeredAITicking = true,
         Sound_AutoPruneQueue = false,
         FPS_BackgroundThrottle = false,
@@ -538,6 +607,8 @@ MPOptim.Presets = {
         Fire_Optimize = true,
         GC_SmartIdleGC = true,
         ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
         
         Admin_ProtectSafehouses = true,
@@ -581,6 +652,8 @@ MPOptim.Presets = {
         Fire_Optimize = true,
         GC_SmartIdleGC = false,
     ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
     
         Vehicle_ChunkPriorityMode = true,
@@ -605,12 +678,16 @@ MPOptim.Presets = {
     },
     TestModeVanilla = {
         GFX_BuildingInteriorCull = false,
+        Combat_BurstSmoother = false,
         Horde_AudioConcurrencyLimit = false,
+        Horde_CullDistantAttachments = false,
         Horde_StaggeredAITicking = false,
         ModShield_Enabled = false,
         
+        Vehicle_PhysicsSleep = false,
         GFX_DynamicZoomLOD = false,
         Animal_ThrottleDistant = false,
+        GFX_ForestCanopyCull = false,
         Blood_CapPerTile = false,
         Blood_AutoClean = false,
         Corpse_AutoClean = false,
@@ -638,8 +715,10 @@ MPOptim.Presets = {
         Animal_CleanTracks = false,
         Fire_Optimize = false,
         GC_SmartIdleGC = false,
-    ModShield_Enabled = true,
-    Plumbing_ThrottleWaterPipes = true,
+        ModShield_Enabled = false,
+        Mod_PacedEventRate = false,
+        Mod_ZombieScriptLOD = false,
+        Plumbing_ThrottleWaterPipes = false,
     
         Vehicle_ChunkPriorityMode = false,
         GFX_EnforceTextureCompression = false,
@@ -749,6 +828,43 @@ function MPOptim.Config.Load()
     end
     reader:close()
 
+    -- Check for startup benchmark / argument overrides (pzo-bench.txt and pzo-args.txt in ~/Zomboid/Lua/)
+    local overrideFiles = { "pzo-bench.txt", "pzo-args.txt" }
+    for _, ovFile in ipairs(overrideFiles) do
+        local ovReader = getFileReader(ovFile, false)
+        if ovReader then
+            local ovLine = ovReader:readLine()
+            while ovLine do
+                local trimmed = string.match(ovLine, "^%s*(.-)%s*$") or ""
+                if trimmed ~= "" and string.sub(trimmed, 1, 1) ~= "#" and string.sub(trimmed, 1, 1) ~= ";" then
+                    local k, v = string.match(trimmed, "^([^=]+)=(.*)$")
+                    if k and v then
+                        local key = string.lower(string.match(k, "^%s*(.-)%s*$"))
+                        local rawVal = string.lower(string.match(v, "^%s*(.-)%s*$"))
+                        local isTrue = (rawVal == "1" or rawVal == "true" or rawVal == "on")
+                        local isFalse = (rawVal == "0" or rawVal == "false" or rawVal == "off")
+
+                        if key == "mod_paced" or key == "mod_pacedeventrate" or key == "pace" then
+                            if isTrue then MPOptim.Config.Current["Mod_PacedEventRate"] = true end
+                            if isFalse then MPOptim.Config.Current["Mod_PacedEventRate"] = false end
+                        elseif key == "zombie_lod" or key == "mod_zombiescriptlod" or key == "lod" then
+                            if isTrue then MPOptim.Config.Current["Mod_ZombieScriptLOD"] = true end
+                            if isFalse then MPOptim.Config.Current["Mod_ZombieScriptLOD"] = false end
+                        elseif key == "benchmark_baseline" or (key == "pzo_benchmark" and rawVal == "baseline") then
+                            MPOptim.Config.Current["Mod_PacedEventRate"] = false
+                            MPOptim.Config.Current["Mod_ZombieScriptLOD"] = false
+                        elseif key == "benchmark_optimized" or (key == "pzo_benchmark" and rawVal == "optimized") then
+                            MPOptim.Config.Current["Mod_PacedEventRate"] = true
+                            MPOptim.Config.Current["Mod_ZombieScriptLOD"] = true
+                        end
+                    end
+                end
+                ovLine = ovReader:readLine()
+            end
+            ovReader:close()
+        end
+    end
+
     -- One-time migration: reset Vehicle_LimitDriveZoom and Vehicle_ScaleLightingFPS to false
     -- so existing users immediately get vanilla road chunk lookahead without outrunning chunk loading at max speed.
     local lastSeen = MPOptim.Config.Current["LastSeenVersion"] or "0.0.0"
@@ -774,7 +890,7 @@ function MPOptim.Config.SyncToEngine()
     local bridge = (type(PZOEngineBridge) == "table" and PZOEngineBridge) or (type(PZOEngine) == "table" and PZOEngine)
     if bridge then
         if type(bridge.setJvmOption) == "function" then
-            local boolKeys = { "JVM_GLStateOptimizer", "JVM_StreamBufferBoost", "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_PowerShield", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_BytecodeBloodCap" }
+            local boolKeys = { "JVM_GLStateOptimizer", "JVM_StreamBufferBoost", "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_PowerShield", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_BytecodeBloodCap", "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle", "JVM_PathfindNativeAStar" }
             for _, k in ipairs(boolKeys) do
                 local val = MPOptim.Config.Get(k)
                 if val ~= nil then
@@ -783,7 +899,7 @@ function MPOptim.Config.SyncToEngine()
             end
         end
         if type(bridge.setJvmIntOption) == "function" then
-            local intKeys = { "JVM_ChunkCacheSize", "JVM_GCThresholdMB" }
+            local intKeys = { "JVM_ChunkCacheSize", "JVM_GCThresholdMB", "JVM_PathfindBudgetMs" }
             for _, k in ipairs(intKeys) do
                 local val = tonumber(MPOptim.Config.Get(k))
                 if val then

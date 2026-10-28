@@ -890,7 +890,7 @@ function MPOptim.Config.SyncToEngine()
     local bridge = (type(PZOEngineBridge) == "table" and PZOEngineBridge) or (type(PZOEngine) == "table" and PZOEngine)
     if bridge then
         if type(bridge.setJvmOption) == "function" then
-            local boolKeys = { "JVM_GLStateOptimizer", "JVM_StreamBufferBoost", "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_PowerShield", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_BytecodeBloodCap", "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle", "JVM_PathfindNativeAStar" }
+            local boolKeys = { "JVM_GLStateOptimizer", "JVM_StreamBufferBoost", "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_PowerShield", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_BytecodeBloodCap", "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle", "JVM_PathfindNativeAStar", "Mod_PacedEventRate", "Mod_ZombieScriptLOD" }
             for _, k in ipairs(boolKeys) do
                 local val = MPOptim.Config.Get(k)
                 if val ~= nil then

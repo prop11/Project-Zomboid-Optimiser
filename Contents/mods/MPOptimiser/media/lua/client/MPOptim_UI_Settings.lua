@@ -784,13 +784,11 @@ function MPOptim_SettingsUI:createChildren()
     addSectionHeader(self.panelTab2, shieldY, "-- SYSTEM & MOD PROTECTION --", col2X, colW)
     local shieldTicksY = shieldY + math.floor(22 * scale)
     addTick(self.panelTab2, shieldTicksY + (0 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_ModShield_Enabled", "Enable ModShield (3rd-Party Mod Protection)"), "ModShield_Enabled", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_ModShield_Enabled", "Comprehensive protection suite against 3rd-party mods: neutralizes forced GC freezes during combat/driving, throttles disk I/O log spam (100% preserves errors), and shields Build 42 vehicle mechanics from malformed recipe crashes."))
-    addTick(self.panelTab2, shieldTicksY + (1 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Mod_PacedEventRate", "Pace Mod Events (60Hz Clamp & Frame Spreading)"), "Mod_PacedEventRate", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Mod_PacedEventRate", "Clamps 3rd-party mod OnTick and OnPlayerUpdate handlers to 60Hz and staggers execution across frames to eliminate frame time spikes on 120Hz/144Hz monitors."))
-    addTick(self.panelTab2, shieldTicksY + (2 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Mod_ZombieScriptLOD", "Zombie Script LOD (Near Player Focus)"), "Mod_ZombieScriptLOD", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Mod_ZombieScriptLOD", "Runs 3rd-party zombie mod scripts every frame near you, while throttling far zombies across 6 staggered frame buckets (83%+ Lua CPU reduction in hordes)."))
-    addTick(self.panelTab2, shieldTicksY + (3 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Plumbing_ThrottleWaterPipes", "Water Pipes & Plumbing Throttler (Fixes Lag)"), "Plumbing_ThrottleWaterPipes", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Plumbing_ThrottleWaterPipes", "Throttles expensive 60 Hz per-frame pipe flow loops in Water Pipes and irrigation mods down to 1 Hz, dropping CPU load by 98% with zero gameplay loss."))
-    addTick(self.panelTab2, shieldTicksY + (4 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_GC_SmartIdleGC", "Smart Idle Garbage Collection (RAM Purge)"), "GC_SmartIdleGC", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_GC_SmartIdleGC", "Runs gentle memory sweeps only during sleep, reading, and safe resting when RAM exceeds your threshold."))
-    addStepper(self.panelTab2, shieldTicksY + (5 * self.tickSpacing) + math.floor(4 * scale), MPOptim.GetText("UI_ModOptions_GC_PurgeThresholdMB", "GC Purge RAM Threshold"), "GC_PurgeThresholdMB", { 1200, 1600, 2000, 2400, 2800, 3200, 4000 }, function(v) return tostring(v) .. " MB" end, MPOptim.GetText("UI_MPOptim_Tooltip_GC_PurgeThresholdMB", "Memory usage cutoff threshold required before Smart Idle Garbage Collection triggers a background sweep."), col2X, colW)
+    addTick(self.panelTab2, shieldTicksY + (1 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Plumbing_ThrottleWaterPipes", "Water Pipes & Plumbing Throttler (Fixes Lag)"), "Plumbing_ThrottleWaterPipes", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Plumbing_ThrottleWaterPipes", "Throttles expensive 60 Hz per-frame pipe flow loops in Water Pipes and irrigation mods down to 1 Hz, dropping CPU load by 98% with zero gameplay loss."))
+    addTick(self.panelTab2, shieldTicksY + (2 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_GC_SmartIdleGC", "Smart Idle Garbage Collection (RAM Purge)"), "GC_SmartIdleGC", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_GC_SmartIdleGC", "Runs gentle memory sweeps only during sleep, reading, and safe resting when RAM exceeds your threshold."))
+    addStepper(self.panelTab2, shieldTicksY + (3 * self.tickSpacing) + math.floor(4 * scale), MPOptim.GetText("UI_ModOptions_GC_PurgeThresholdMB", "GC Purge RAM Threshold"), "GC_PurgeThresholdMB", { 1200, 1600, 2000, 2400, 2800, 3200, 4000 }, function(v) return tostring(v) .. " MB" end, MPOptim.GetText("UI_MPOptim_Tooltip_GC_PurgeThresholdMB", "Memory usage cutoff threshold required before Smart Idle Garbage Collection triggers a background sweep."), col2X, colW)
 
-    makeScrollable(self.panelTab2, math.max(subH, shieldTicksY + (5 * self.tickSpacing) + stepGap + math.floor(30 * scale)))
+    makeScrollable(self.panelTab2, math.max(subH, shieldTicksY + (3 * self.tickSpacing) + stepGap + math.floor(30 * scale)))
 
     -- =========================================================================
     -- TAB 3: HORDES & COMBAT
@@ -1044,12 +1042,14 @@ function MPOptim_SettingsUI:createChildren()
     local jvmPfRightY = jvmPfHeaderY + math.floor(22 * scale)
     addTick(self.panelTab6, jvmPfRightY + (0 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_JVM_PathfindSquareMerge", "Square Merge Query Optimizer"), "JVM_PathfindSquareMerge", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_PathfindSquareMerge", "Collapses repeated square updates within an iteration into the latest state, preventing redundant graph rebuilds and queue spam.") .. jvmTipLock)
     addTick(self.panelTab6, jvmPfRightY + (1 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_JVM_PathfindVehicleThrottle", "Vehicle Navmesh Update Throttler"), "JVM_PathfindVehicleThrottle", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_PathfindVehicleThrottle", "Resends vehicle navmesh polygons only when moving 0.25+ tiles or every 250ms, avoiding expensive DLL graph invalidation every micro-turn.") .. jvmTipLock)
+    addTick(self.panelTab6, jvmPfRightY + (2 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Mod_PacedEventRate", "Bytecode Mod Event Pacer (60Hz Clamp)"), "Mod_PacedEventRate", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Mod_PacedEventRate", "Paces 3rd-party mod OnTick and OnPlayerUpdate handlers at the JVM bytecode level to 60Hz and staggers execution across frames to eliminate frame time spikes on 120Hz/144Hz monitors.") .. jvmTipLock)
+    addTick(self.panelTab6, jvmPfRightY + (3 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Mod_ZombieScriptLOD", "Bytecode Zombie Script LOD (Near Player)"), "Mod_ZombieScriptLOD", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Mod_ZombieScriptLOD", "Executes 3rd-party zombie mod scripts every frame near the player at JVM bytecode level, while staggering distant zombies across frames (83%+ Lua CPU reduction in hordes).") .. jvmTipLock)
 
     if not isJvmActive then
         local jvmKeys = {
             "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_GLStateOptimizer", "JVM_PowerShield",
             "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_KahluaGCPacer", "JVM_StreamBufferBoost", "JVM_BytecodeBloodCap",
-            "JVM_PathfindNativeAStar", "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle"
+            "JVM_PathfindNativeAStar", "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle", "Mod_PacedEventRate", "Mod_ZombieScriptLOD"
         }
         for _, k in ipairs(jvmKeys) do
             local box = self.tickboxMap[k]
@@ -1066,7 +1066,7 @@ function MPOptim_SettingsUI:createChildren()
         end
     end
 
-    local maxTab6Y = jvmPfStepY + (1 * stepGap) + math.floor(40 * scale)
+    local maxTab6Y = math.max(jvmPfStepY + (1 * stepGap), jvmPfRightY + (4 * self.tickSpacing)) + math.floor(40 * scale)
     makeScrollable(self.panelTab6, math.max(subH, maxTab6Y))
 
     -- =========================================================================
@@ -1508,7 +1508,7 @@ function MPOptim_SettingsUI:updateDependencies()
     local jvmKeys = {
         "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_GLStateOptimizer", "JVM_PowerShield",
         "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_KahluaGCPacer", "JVM_StreamBufferBoost", "JVM_BytecodeBloodCap",
-        "JVM_PathfindNativeAStar", "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle"
+        "JVM_PathfindNativeAStar", "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle", "Mod_PacedEventRate", "Mod_ZombieScriptLOD"
     }
     for _, k in ipairs(jvmKeys) do
         setBoxEnable(k, isJvmActive == true)

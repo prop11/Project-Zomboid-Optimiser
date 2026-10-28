@@ -8,7 +8,6 @@
 
 require "MPOptim_Config"
 require "MPOptim_Utils"
-require "MPOptim_ModGovernor"
 
 MPOptim = MPOptim or {}
 MPOptim.ModProfiler = MPOptim.ModProfiler or {}
@@ -203,18 +202,8 @@ local function wrapEventTable(evName, evObj)
         local fn = (type(a1) == "function" and a1) or (type(a2) == "function" and a2)
         if fn then
             MPOptim.ModProfiler.RegisterHook(evName, fn)
-            local targetFn = fn
-            if MPOptim.ModGovernor and MPOptim.ModGovernor.WrapHook then
-                targetFn = MPOptim.ModGovernor.WrapHook(evName, fn)
-            end
-            if origAdd then
-                if a1 == fn then
-                    return origAdd(targetFn, a2)
-                else
-                    return origAdd(a1, targetFn)
-                end
-            end
-        elseif origAdd then
+        end
+        if origAdd then
             return origAdd(...)
         end
     end
@@ -224,20 +213,9 @@ local function wrapEventTable(evName, evObj)
             local a1, a2 = ...
             local fn = (type(a1) == "function" and a1) or (type(a2) == "function" and a2)
             if fn then
-                local targetFn = fn
-                local originalFn = fn
-                if MPOptim.ModGovernor and MPOptim.ModGovernor.UnwrapHook then
-                    local w, orig = MPOptim.ModGovernor.UnwrapHook(fn)
-                    targetFn = w or fn
-                    originalFn = orig or fn
-                end
-                MPOptim.ModProfiler.UnregisterHook(evName, originalFn)
-                if a1 == fn then
-                    return origRemove(targetFn, a2)
-                else
-                    return origRemove(a1, targetFn)
-                end
-            elseif origRemove then
+                MPOptim.ModProfiler.UnregisterHook(evName, fn)
+            end
+            if origRemove then
                 return origRemove(...)
             end
         end

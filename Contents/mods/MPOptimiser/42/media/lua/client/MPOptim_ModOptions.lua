@@ -103,6 +103,8 @@ local function registerNativeOptions()
         opt:addTickBox("JVM_HordeHibernation", "Distant Horde Spatial Hibernation", (MPOptim.Config and MPOptim.Config.Get("JVM_HordeHibernation")) ~= false, "Hibernates distant off-screen zombie pathfinding state in RAM")
         opt:addTickBox("JVM_BytecodeBloodCap", "Bytecode Blood Overdraw Cap", (MPOptim.Config and MPOptim.Config.Get("JVM_BytecodeBloodCap")) ~= false, "Directly patches IsoGridSquare.splatBlood in JVM bytecode to eliminate chunk FBO texture stalls")
         opt:addTickBox("JVM_PathfindNativeAStar", "Native A* Fast Pathfinding (PZPathFind64.dll)", (MPOptim.Config and MPOptim.Config.Get("JVM_PathfindNativeAStar")) ~= false, "Replaces linear-scan decrease-key with indexed decrease-key in PZPathFind64.dll")
+        opt:addTickBox("Mod_PacedEventRate", "Bytecode Mod Event Pacer (60Hz Clamp)", (MPOptim.Config and MPOptim.Config.Get("Mod_PacedEventRate")) ~= false, "Paces 3rd-party mod OnTick/OnPlayerUpdate handlers at JVM bytecode level to 60Hz")
+        opt:addTickBox("Mod_ZombieScriptLOD", "Bytecode Zombie Script LOD (Near Player)", (MPOptim.Config and MPOptim.Config.Get("Mod_ZombieScriptLOD")) ~= false, "Executes 3rd-party zombie mod scripts every frame near player at JVM bytecode level")
 
         opt.apply = function(self)
             local keyOpt = self:getOption("OptimizerHotkey")
@@ -119,7 +121,7 @@ local function registerNativeOptions()
                 "Vehicle_SuspendBackgroundCleanups", "Vehicle_ThreadedModelSlots",
                 "GC_SmartIdleGC", "GC_PurgeThresholdMB", "Blood_AutoClean", "Corpse_AutoClean", "Corpse_IntervalHours", "Debris_AutoClean",
                 "Animal_CleanTracks", "Base_ProtectPlayerStructures",
-                "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_BytecodeBloodCap", "JVM_PathfindNativeAStar"
+                "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_BytecodeBloodCap", "JVM_PathfindNativeAStar", "Mod_PacedEventRate", "Mod_ZombieScriptLOD"
             }) do
                 local o = self:getOption(optKey)
                 if o and o.value ~= nil then

@@ -233,21 +233,24 @@ function MPOptim.ModProfiler.InstallInterceptors()
         end
 
         -- Metatable to catch future dynamically created events (LuaEventManager.AddEvent)
-        local mt = getmetatable(Events) or {}
-        local origNewIndex = mt.__newindex
+        local currentMt = getmetatable(Events)
+        if type(currentMt) ~= "string" then
+            local mt = currentMt or {}
+            local origNewIndex = mt.__newindex
 
-        mt.__newindex = function(tbl, key, val)
-            if type(key) == "string" and type(val) == "table" then
-                wrapEventTable(key, val)
+            mt.__newindex = function(tbl, key, val)
+                if type(key) == "string" and type(val) == "table" then
+                    wrapEventTable(key, val)
+                end
+                if origNewIndex then
+                    return origNewIndex(tbl, key, val)
+                else
+                    rawset(tbl, key, val)
+                end
             end
-            if origNewIndex then
-                return origNewIndex(tbl, key, val)
-            else
-                rawset(tbl, key, val)
-            end
+
+            setmetatable(Events, mt)
         end
-
-        pcall(function() setmetatable(Events, mt) end)
     end
 end
 
@@ -297,18 +300,6 @@ local function estimateTableMemory(tbl, visited, depth)
     return bytes, tableCount, closureCount
 end
 
--- Safe inspection of a function's debug name in Kahlua
-local function getClosureDebugName(fn)
-    if not fn or type(fn) ~= "function" then return nil end
-    local ok, errMsg = pcall(function() return fn[0] end)
-    if not ok and type(errMsg) == "string" then
-        -- Format in Kahlua: "attempted index: 0.0 of non-table: function <funcName>:<line> ..."
-        local fname = string.match(errMsg, "function ([%w_]+):")
-        return fname
-    end
-    return nil
-end
-
 -- =========================================================================
 -- MOD METADATA & NAME RESOLVER (Resolves true 'name=' from mod.info)
 -- =========================================================================
@@ -318,15 +309,15 @@ local function getModDirectoryCache()
     if modDirectoryCache then return modDirectoryCache end
     modDirectoryCache = {}
 
-    if getModDirectoryTable and getModInfo then
-        local ok, dirs = pcall(getModDirectoryTable)
-        if ok and dirs then
+    if getModDirectoryTable and getModInfo and type(getModDirectoryTable) == "function" and type(getModInfo) == "function" then
+        local dirs = getModDirectoryTable()
+        if dirs then
             local count = (dirs.size and dirs:size()) or (type(dirs) == "table" and #dirs) or 0
             for i = 0, count - 1 do
                 local d = (dirs.get and dirs:get(i)) or dirs[i + 1]
-                if d then
-                    local ok2, mi = pcall(getModInfo, d)
-                    if ok2 and mi and mi.getId then
+                if d and type(d) == "string" then
+                    local mi = getModInfo(d)
+                    if mi and mi.getId then
                         local mid = mi:getId()
                         if mid and #mid > 0 then
                             modDirectoryCache[string.lower(mid)] = mi
@@ -344,25 +335,27 @@ local function resolveModInfo(modId)
     if not modId or #modId == 0 then return nil end
 
     -- 1. Global engine function getModInfoByID (most direct in PZ B42/B41)
-    if getModInfoByID then
-        local ok, info = pcall(getModInfoByID, modId)
-        if ok and info then return info end
+    if getModInfoByID and type(getModInfoByID) == "function" then
+        local info = getModInfoByID(modId)
+        if info then return info end
     end
 
     -- 2. Directory scan cache
     local cache = getModDirectoryCache()
-    local cachedInfo = cache[string.lower(modId)]
-    if cachedInfo then return cachedInfo end
+    if cache then
+        local cachedInfo = cache[string.lower(modId)]
+        if cachedInfo then return cachedInfo end
+    end
 
     -- 3. ChooseGameInfo methods
     if ChooseGameInfo then
-        if ChooseGameInfo.getAvailableModDetails then
-            local ok, info = pcall(ChooseGameInfo.getAvailableModDetails, modId)
-            if ok and info then return info end
+        if type(ChooseGameInfo.getAvailableModDetails) == "function" then
+            local info = ChooseGameInfo.getAvailableModDetails(modId)
+            if info then return info end
         end
-        if ChooseGameInfo.getModDetails then
-            local ok, info = pcall(ChooseGameInfo.getModDetails, modId)
-            if ok and info then return info end
+        if type(ChooseGameInfo.getModDetails) == "function" then
+            local info = ChooseGameInfo.getModDetails(modId)
+            if info then return info end
         end
     end
 
@@ -372,9 +365,9 @@ end
 local function extractModName(modId, modInfo)
     -- Priority 1: Check modInfo:getName() (Populated directly by PZ from 'name=' in mod.info)
     if modInfo then
-        if modInfo.getName then
-            local ok, name = pcall(function() return modInfo:getName() end)
-            if ok and name and type(name) == "string" and #name > 0 then
+        if modInfo.getName and type(modInfo.getName) == "function" then
+            local name = modInfo:getName()
+            if name and type(name) == "string" and #name > 0 then
                 return name
             end
         end
@@ -383,29 +376,7 @@ local function extractModName(modId, modInfo)
         end
     end
 
-    -- Priority 2: Direct file parse of mod.info if getFileReader is available
-    if getFileReader and modInfo and modInfo.getDir then
-        local okDir, dirPath = pcall(function() return modInfo:getDir() end)
-        if okDir and dirPath and type(dirPath) == "string" and #dirPath > 0 then
-            local sep = "/"
-            local infoPath = dirPath .. sep .. "mod.info"
-            local okFile, reader = pcall(getFileReader, infoPath, false)
-            if okFile and reader then
-                local line = reader:readLine()
-                while line do
-                    local k, v = string.match(line, "^%s*([%w_]+)%s*=%s*(.-)%s*$")
-                    if k and string.lower(k) == "name" and v and #v > 0 then
-                        reader:close()
-                        return v
-                    end
-                    line = reader:readLine()
-                end
-                reader:close()
-            end
-        end
-    end
-
-    -- Priority 3: Well-known mod title mappings if engine lookup returned empty
+    -- Priority 2: Well-known mod title mappings if engine lookup returned empty
     local lowerId = string.lower(modId or "")
     local KNOWN_TITLES = {
         ["mpoptimizer"]             = "Project Zomboid Optimiser",
@@ -557,9 +528,11 @@ function MPOptim.ModProfiler.Scan()
     -- 2. Namespace Scan & Memory Attribution
     local visitedTables = {}
     local matchedGlobalTables = {}
+    local fnToMod = {}
+    local fnToDesc = {}
 
     for globalName, val in pairs(_G) do
-        if type(globalName) == "string" and type(val) == "table" and not VANILLA_BLACKLIST[globalName] then
+        if type(globalName) == "string" and not VANILLA_BLACKLIST[globalName] then
             -- Check if it starts with "IS" (Indie Stone UI prefix) unless explicitly matched
             local isVanillaIS = (string.sub(globalName, 1, 2) == "IS")
 
@@ -587,7 +560,7 @@ function MPOptim.ModProfiler.Scan()
                 end
 
                 -- Check internal table metadata self-identification
-                if not matchedMod then
+                if not matchedMod and type(val) == "table" then
                     local tModId = val.modId or val.MOD_ID or val.mod_id or val._modId
                     if tModId and type(tModId) == "string" then
                         local normTMod = normalizeToken(tModId)
@@ -596,42 +569,45 @@ function MPOptim.ModProfiler.Scan()
                 end
             end
 
-            -- Measure table footprint
-            local tBytes, tTables, tClosures = estimateTableMemory(val, visitedTables, 0)
-            totalEstimatedBytes = totalEstimatedBytes + tBytes
+            if matchedMod and type(val) == "function" then
+                fnToMod[val] = matchedMod
+                fnToDesc[val] = globalName .. "()"
+            elseif type(val) == "table" then
+                -- Measure table footprint
+                local tBytes, tTables, tClosures = estimateTableMemory(val, visitedTables, 0)
+                totalEstimatedBytes = totalEstimatedBytes + tBytes
 
-            if matchedMod then
-                table.insert(matchedMod.namespaces, globalName)
-                matchedMod.estimatedBytes = matchedMod.estimatedBytes + tBytes
-                matchedMod.tableCount = matchedMod.tableCount + tTables
-                matchedMod.closureCount = matchedMod.closureCount + tClosures
-                table.insert(matchedGlobalTables, { name = globalName, tbl = val, mod = matchedMod })
+                if matchedMod then
+                    table.insert(matchedMod.namespaces, globalName)
+                    matchedMod.estimatedBytes = matchedMod.estimatedBytes + tBytes
+                    matchedMod.tableCount = matchedMod.tableCount + tTables
+                    matchedMod.closureCount = matchedMod.closureCount + tClosures
+                    table.insert(matchedGlobalTables, { name = globalName, tbl = val, mod = matchedMod })
+                end
             end
         end
     end
 
     -- 3. Build Reverse Function Registry for 100% Exact Callback Attribution
-    local fnToMod = {}
-    local fnToDesc = {}
-
-    for _, mg in ipairs(matchedGlobalTables) do
-        local mEntry = mg.mod
-        local gTbl = mg.tbl
-        local gName = mg.name
-
-        for k, v in pairs(gTbl) do
-            if type(v) == "function" then
-                fnToMod[v] = mEntry
-                fnToDesc[v] = gName .. "." .. tostring(k)
-            elseif type(v) == "table" and v ~= gTbl and v ~= _G then
-                for subK, subV in pairs(v) do
-                    if type(subV) == "function" then
-                        fnToMod[subV] = mEntry
-                        fnToDesc[subV] = gName .. "." .. tostring(k) .. "." .. tostring(subK)
-                    end
+    local function registerTableFunctions(tbl, mEntry, prefix, depth, seen)
+        if not tbl or type(tbl) ~= "table" or depth > 4 or seen[tbl] then return end
+        seen[tbl] = true
+        for k, v in pairs(tbl) do
+            if type(k) == "string" or type(k) == "number" then
+                local path = prefix .. "." .. tostring(k)
+                if type(v) == "function" then
+                    fnToMod[v] = mEntry
+                    fnToDesc[v] = path
+                elseif type(v) == "table" and v ~= _G and v ~= tbl then
+                    registerTableFunctions(v, mEntry, path, depth + 1, seen)
                 end
             end
         end
+    end
+
+    local seenTbls = {}
+    for _, mg in ipairs(matchedGlobalTables) do
+        registerTableFunctions(mg.tbl, mg.mod, mg.name, 1, seenTbls)
     end
 
     -- 4. Evaluate Active Event Hooks (From Interceptor Registry & Event Tables)
@@ -671,22 +647,7 @@ function MPOptim.ModProfiler.Scan()
             local matchedMod = fnToMod[fn]
             local desc = fnToDesc[fn]
 
-            if not matchedMod then
-                -- Inspect function debug name for attribution
-                local dName = getClosureDebugName(fn)
-                if dName then
-                    local normDName = normalizeToken(dName)
-                    for tok, mEntry in pairs(tokenToMod) do
-                        if #tok >= 3 and string.find(normDName, tok, 1, true) then
-                            matchedMod = mEntry
-                            desc = dName .. "()"
-                            break
-                        end
-                    end
-                end
-            end
-
-            -- Default to first active mod if only 1 mod exists, or Vanilla
+            -- If not matched via table functions, check if only 1 active mod exists
             if not matchedMod and totalActive == 1 then
                 for _, mEntry in pairs(modMap) do
                     matchedMod = mEntry

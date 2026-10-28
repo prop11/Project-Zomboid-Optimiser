@@ -53,9 +53,36 @@ function MPOptim.ModShield.InitGCInterceptor()
     MPOptim.ModShield.CollectGarbageHook = collectgarbage
 end
 
--- Native Kahlua print is preserved directly without table allocation or memory pressure.
+-- Throttles repeated mod errors to 3 prints, preventing disk I/O frame freezes
 function MPOptim.ModShield.InitLogThrottler()
-    MPOptim.ModShield.SanitizeFixingRecipes()
+    if print == MPOptim.ModShield.PrintHook then return end
+
+    local logRepeatCounts = {}
+
+    print = function(...)
+        if not MPOptim.Config or MPOptim.Config.Get("ModShield_Enabled") == false then
+            return raw_print(...)
+        end
+
+        local a1 = ...
+        local msg = (type(a1) == "string" and a1) or tostring(a1)
+        if msg and (string.find(msg, "ERROR:", 1, true) or string.find(msg, "Exception", 1, true) or string.find(msg, "attempted index:", 1, true)) then
+            local key = string.sub(msg, 1, 80)
+            local count = (logRepeatCounts[key] or 0) + 1
+            logRepeatCounts[key] = count
+            if count <= 3 then
+                return raw_print(...)
+            elseif count == 4 then
+                return raw_print("[PZO ModShield] Repeated mod error printed 3 times; suppressing further disk log repeats to prevent frametime freeze.")
+            else
+                return
+            end
+        end
+
+        return raw_print(...)
+    end
+
+    MPOptim.ModShield.PrintHook = print
 end
 
 -- 3. Vehicle Mechanics & 3rd-Party Mod FixingManager Null Shield

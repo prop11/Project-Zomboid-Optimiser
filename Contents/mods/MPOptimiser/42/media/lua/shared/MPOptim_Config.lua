@@ -51,6 +51,8 @@ MPOptim.DefaultConfig = {
     GC_AutoPurge = false,
     GC_SmartIdleGC = false,
     ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
     
     GC_PurgeThresholdMB = 2800,
@@ -293,6 +295,8 @@ MPOptim.Presets = {
         Fire_Optimize = true,
         GC_SmartIdleGC = false,
     ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
     
         Vehicle_ChunkPriorityMode = true,
@@ -324,6 +328,8 @@ MPOptim.Presets = {
         Horde_CullDistantAttachments = true,
         Horde_StaggeredAITicking = true,
         ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
         
         Vehicle_PhysicsSleep = false,
@@ -393,6 +399,8 @@ MPOptim.Presets = {
         Fire_Optimize = true,
         GC_SmartIdleGC = true,
         ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
         
         Vehicle_ChunkPriorityMode = true,
@@ -424,6 +432,8 @@ MPOptim.Presets = {
         Horde_CullDistantAttachments = true,
         Horde_StaggeredAITicking = true,
         ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
         
         Vehicle_PhysicsSleep = false,
@@ -493,6 +503,8 @@ MPOptim.Presets = {
         Fire_Optimize = true,
         GC_SmartIdleGC = true,
         ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
         
         Vehicle_ChunkPriorityMode = true,
@@ -524,6 +536,8 @@ MPOptim.Presets = {
         Horde_CullDistantAttachments = true,
         Horde_StaggeredAITicking = true,
         ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
         
         Vehicle_PhysicsSleep = false,
@@ -592,6 +606,8 @@ MPOptim.Presets = {
         Fire_Optimize = true,
         GC_SmartIdleGC = true,
         ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
         
         Admin_ProtectSafehouses = true,
@@ -635,6 +651,8 @@ MPOptim.Presets = {
         Fire_Optimize = true,
         GC_SmartIdleGC = false,
     ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
     
         Vehicle_ChunkPriorityMode = true,
@@ -697,6 +715,8 @@ MPOptim.Presets = {
         Fire_Optimize = false,
         GC_SmartIdleGC = false,
     ModShield_Enabled = true,
+    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
+    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
     Plumbing_ThrottleWaterPipes = true,
     
         Vehicle_ChunkPriorityMode = false,

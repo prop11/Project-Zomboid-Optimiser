@@ -310,6 +310,133 @@ local function getClosureDebugName(fn)
 end
 
 -- =========================================================================
+-- MOD METADATA & NAME RESOLVER (Resolves true 'name=' from mod.info)
+-- =========================================================================
+local modDirectoryCache = nil
+
+local function getModDirectoryCache()
+    if modDirectoryCache then return modDirectoryCache end
+    modDirectoryCache = {}
+
+    if getModDirectoryTable and getModInfo then
+        local ok, dirs = pcall(getModDirectoryTable)
+        if ok and dirs then
+            local count = (dirs.size and dirs:size()) or (type(dirs) == "table" and #dirs) or 0
+            for i = 0, count - 1 do
+                local d = (dirs.get and dirs:get(i)) or dirs[i + 1]
+                if d then
+                    local ok2, mi = pcall(getModInfo, d)
+                    if ok2 and mi and mi.getId then
+                        local mid = mi:getId()
+                        if mid and #mid > 0 then
+                            modDirectoryCache[string.lower(mid)] = mi
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return modDirectoryCache
+end
+
+local function resolveModInfo(modId)
+    if not modId or #modId == 0 then return nil end
+
+    -- 1. Global engine function getModInfoByID (most direct in PZ B42/B41)
+    if getModInfoByID then
+        local ok, info = pcall(getModInfoByID, modId)
+        if ok and info then return info end
+    end
+
+    -- 2. Directory scan cache
+    local cache = getModDirectoryCache()
+    local cachedInfo = cache[string.lower(modId)]
+    if cachedInfo then return cachedInfo end
+
+    -- 3. ChooseGameInfo methods
+    if ChooseGameInfo then
+        if ChooseGameInfo.getAvailableModDetails then
+            local ok, info = pcall(ChooseGameInfo.getAvailableModDetails, modId)
+            if ok and info then return info end
+        end
+        if ChooseGameInfo.getModDetails then
+            local ok, info = pcall(ChooseGameInfo.getModDetails, modId)
+            if ok and info then return info end
+        end
+    end
+
+    return nil
+end
+
+local function extractModName(modId, modInfo)
+    -- Priority 1: Check modInfo:getName() (Populated directly by PZ from 'name=' in mod.info)
+    if modInfo then
+        if modInfo.getName then
+            local ok, name = pcall(function() return modInfo:getName() end)
+            if ok and name and type(name) == "string" and #name > 0 then
+                return name
+            end
+        end
+        if modInfo.name and type(modInfo.name) == "string" and #modInfo.name > 0 then
+            return modInfo.name
+        end
+    end
+
+    -- Priority 2: Direct file parse of mod.info if getFileReader is available
+    if getFileReader and modInfo and modInfo.getDir then
+        local okDir, dirPath = pcall(function() return modInfo:getDir() end)
+        if okDir and dirPath and type(dirPath) == "string" and #dirPath > 0 then
+            local sep = "/"
+            local infoPath = dirPath .. sep .. "mod.info"
+            local okFile, reader = pcall(getFileReader, infoPath, false)
+            if okFile and reader then
+                local line = reader:readLine()
+                while line do
+                    local k, v = string.match(line, "^%s*([%w_]+)%s*=%s*(.-)%s*$")
+                    if k and string.lower(k) == "name" and v and #v > 0 then
+                        reader:close()
+                        return v
+                    end
+                    line = reader:readLine()
+                end
+                reader:close()
+            end
+        end
+    end
+
+    -- Priority 3: Well-known mod title mappings if engine lookup returned empty
+    local lowerId = string.lower(modId or "")
+    local KNOWN_TITLES = {
+        ["mpoptimizer"]             = "Project Zomboid Optimiser",
+        ["mpoptimiser"]             = "Project Zomboid Optimiser",
+        ["brita_2"]                 = "Brita's Weapon Pack",
+        ["arsenal(26)gunfighter"]   = "Arsenal[26] GunFighter",
+        ["arsenal[26]gunfighter"]   = "Arsenal[26] GunFighter",
+        ["arsenal26"]               = "Arsenal[26] GunFighter",
+        ["truemusic"]               = "True Music",
+        ["bb_commonsense"]          = "Common Sense",
+        ["commonsense"]             = "Common Sense",
+        ["expandedhelicopterevents"]= "Expanded Helicopter Events",
+        ["ehe"]                     = "Expanded Helicopter Events",
+        ["bettersort"]              = "Better Sorting",
+        ["bettersorting"]           = "Better Sorting",
+        ["equipmentui"]             = "Equipment UI",
+        ["modoptions"]              = "Mod Options",
+        ["propsort"]                = "PropSort",
+        ["propcheatmenu"]           = "Prop Cheat Menu",
+        ["autoloot"]                = "AutoLoot",
+        ["hasbeenread"]             = "Has Been Read",
+        ["rvinterior"]              = "RV Interior"
+    }
+    if KNOWN_TITLES[lowerId] then
+        return KNOWN_TITLES[lowerId]
+    end
+
+    return modId
+end
+
+-- =========================================================================
 -- MAIN SCAN ROUTINE
 -- =========================================================================
 function MPOptim.ModProfiler.Scan()
@@ -347,11 +474,11 @@ function MPOptim.ModProfiler.Scan()
             local modId = activeModsList:get(i)
             if modId then
                 totalActive = totalActive + 1
-                local modInfo = (ChooseGameInfo and ChooseGameInfo.getModDetails and ChooseGameInfo.getModDetails(modId))
-                local name = (modInfo and (modInfo.name or (modInfo.getName and modInfo:getName()))) or modId
-                local author = (modInfo and (modInfo.author or (modInfo.getAuthor and modInfo:getAuthor()))) or "Unknown"
-                local version = (modInfo and (modInfo.version or (modInfo.getModVersion and modInfo:getModVersion()))) or "1.0"
-                local desc = (modInfo and (modInfo.desc or (modInfo.getDescription and modInfo:getDescription()))) or ""
+                local modInfo = resolveModInfo(modId)
+                local name = extractModName(modId, modInfo)
+                local author = (modInfo and ((modInfo.getAuthor and modInfo:getAuthor()) or modInfo.author)) or "Unknown"
+                local version = (modInfo and ((modInfo.getModVersion and modInfo:getModVersion()) or modInfo.version)) or "1.0"
+                local desc = (modInfo and ((modInfo.getDescription and modInfo:getDescription()) or modInfo.desc)) or ""
 
                 local rawKey = string.lower(modId)
                 local mEntry = {

@@ -1069,6 +1069,38 @@ function MPOptim_SettingsUI:createChildren()
     -- =========================================================================
     -- TAB 7: MOD PROFILER
     -- =========================================================================
+    local function trimTextToWidth(font, text, maxPixelW)
+        if not text or type(text) ~= "string" then return "" end
+        if maxPixelW <= 10 then return "..." end
+        local tm = getTextManager and getTextManager()
+        if not tm or not tm.MeasureStringX then
+            local maxChars = math.max(4, math.floor(maxPixelW / 8))
+            if #text > maxChars then
+                return string.sub(text, 1, math.max(1, maxChars - 3)) .. "..."
+            end
+            return text
+        end
+
+        if tm:MeasureStringX(font, text) <= maxPixelW then
+            return text
+        end
+
+        local low = 1
+        local high = #text
+        local best = ""
+        while low <= high do
+            local mid = math.floor((low + high) / 2)
+            local candidate = string.sub(text, 1, mid) .. "..."
+            if tm:MeasureStringX(font, candidate) <= maxPixelW then
+                best = candidate
+                low = mid + 1
+            else
+                high = mid - 1
+            end
+        end
+        return (#best > 0) and best or "..."
+    end
+
     self.panelTab7 = ISPanel:new(subX, subY, subW, subH)
     self.panelTab7:initialise()
     forwardFocus(self.panelTab7, self)
@@ -1115,7 +1147,9 @@ function MPOptim_SettingsUI:createChildren()
         local ratingX = memX - math.floor(95 * scale)
         local hooksX = ratingX - math.floor(45 * scale)
 
-        local displayName = data.name or data.id or "Unknown Mod"
+        local nameMaxW = hooksX - math.floor(14 * scale)
+        local rawName = data.name or data.id or "Unknown Mod"
+        local displayName = trimTextToWidth(smallFont, rawName, nameMaxW)
         list:drawText(displayName, math.floor(10 * scale), textY, 0.92, 0.92, 0.92, 1.0, smallFont)
 
         local hCount = data.hookCount or 0
@@ -1167,12 +1201,15 @@ function MPOptim_SettingsUI:createChildren()
         local cardW = p.width - cardX - math.floor(16 * sc)
         local cardH = profilerListH
 
+        -- Outer Card Box Background & Borders
         p:drawRect(cardX, cardY, cardW, cardH, 0.75, 0.05, 0.07, 0.11)
         p:drawRectBorder(cardX, cardY, cardW, cardH, 0.85, 0.22, 0.38, 0.60)
         p:drawRect(cardX + 1, cardY + 1, cardW - 2, 2, 0.95, 0.20, 0.75, 1.0)
 
         local pad = math.floor(14 * sc)
+        local contentW = cardW - (pad * 2)
         local currY = cardY + pad
+        local cardBottomY = cardY + cardH - pad
 
         local mod = self.selectedModData
         if not mod then
@@ -1180,13 +1217,21 @@ function MPOptim_SettingsUI:createChildren()
             return
         end
 
-        p:drawText(mod.name or mod.id, cardX + pad, currY, 0.35, 0.85, 1.0, 1.0, mFont)
+        -- Hardware-level clipping to guarantee zero text bleed outside card bounds
+        p:setStencilRect(cardX + 2, cardY + 2, cardW - 4, cardH - 4)
+
+        -- Mod Header Title (from name= field)
+        local rawTitle = mod.name or mod.id or "Unknown Mod"
+        local safeTitle = trimTextToWidth(mFont, rawTitle, contentW)
+        p:drawText(safeTitle, cardX + pad, currY, 0.35, 0.85, 1.0, 1.0, mFont)
         currY = currY + lineH + math.floor(4 * sc)
 
+        -- Meta info
         local metaStr = string.format("ID: %s  |  Author: %s  |  Version: %s", tostring(mod.id), tostring(mod.author), tostring(mod.version))
-        p:drawText(metaStr, cardX + pad, currY, 0.70, 0.75, 0.85, 1.0, font)
+        p:drawText(trimTextToWidth(font, metaStr, contentW), cardX + pad, currY, 0.70, 0.75, 0.85, 1.0, font)
         currY = currY + lineH + math.floor(4 * sc)
 
+        -- Rating & Stress Score
         local ratingColor = { r = 0.35, g = 0.95, b = 0.45 }
         local ratingDesc = "Minimal CPU/frame impact; lightweight hooks."
         if mod.rating == "MODERATE" then
@@ -1201,56 +1246,76 @@ function MPOptim_SettingsUI:createChildren()
         end
 
         local ratingText = string.format("Performance Rating: [%s]  (Stress Score: %d)", tostring(mod.rating), mod.stressScore or 0)
-        p:drawText(ratingText, cardX + pad, currY, ratingColor.r, ratingColor.g, ratingColor.b, 1.0, font)
+        p:drawText(trimTextToWidth(font, ratingText, contentW), cardX + pad, currY, ratingColor.r, ratingColor.g, ratingColor.b, 1.0, font)
         currY = currY + lineH
 
-        p:drawText(ratingDesc, cardX + pad, currY, 0.75, 0.75, 0.75, 1.0, font)
+        p:drawText(trimTextToWidth(font, ratingDesc, contentW), cardX + pad, currY, 0.75, 0.75, 0.75, 1.0, font)
         currY = currY + lineH + math.floor(6 * sc)
 
+        -- Memory & Tables
         local memKb = math.floor((mod.estimatedBytes or 0) / 1024)
         local memStr = (memKb >= 1024) and string.format("%.2f MB", memKb / 1024) or string.format("%d KB", memKb)
         local memInfo = string.format("Lua Heap Footprint: %s  (%d tables, %d closures)", memStr, mod.tableCount or 0, mod.closureCount or 0)
-        p:drawText(memInfo, cardX + pad, currY, 0.85, 0.90, 0.95, 1.0, font)
+        p:drawText(trimTextToWidth(font, memInfo, contentW), cardX + pad, currY, 0.85, 0.90, 0.95, 1.0, font)
         currY = currY + lineH
 
+        -- Namespaces
         local nsList = mod.namespaces or {}
         local nsStr = (#nsList > 0) and table.concat(nsList, ", ") or "None detected (Clean local scope / minimal globals)"
-        p:drawText("Global Namespaces: " .. nsStr, cardX + pad, currY, 0.65, 0.75, 0.85, 1.0, font)
+        p:drawText(trimTextToWidth(font, "Global Namespaces: " .. nsStr, contentW), cardX + pad, currY, 0.65, 0.75, 0.85, 1.0, font)
         currY = currY + lineH + math.floor(8 * sc)
 
-        p:drawRect(cardX + pad, currY, cardW - (pad * 2), 1, 0.40, 0.30, 0.45, 0.65)
+        -- Divider line
+        p:drawRect(cardX + pad, currY, contentW, 1, 0.40, 0.30, 0.45, 0.65)
         currY = currY + math.floor(8 * sc)
 
+        -- Hook Breakdown Header
         local hookHeader = string.format("Active Engine Event Hooks (%d total listeners):", mod.hookCount or 0)
-        p:drawText(hookHeader, cardX + pad, currY, 0.95, 0.95, 0.95, 1.0, font)
-        currY = currY + lineH + math.floor(2 * sc)
+        p:drawText(trimTextToWidth(font, hookHeader, contentW), cardX + pad, currY, 0.95, 0.95, 0.95, 1.0, font)
+        currY = currY + lineH + math.floor(4 * sc)
 
         local hooks = mod.hooks or {}
         if #hooks == 0 then
             p:drawText("No active engine events hooked (0 listeners).", cardX + pad, currY, 0.50, 0.60, 0.70, 1.0, font)
         else
-            local remainingHeight = (cardY + cardH) - currY - pad
-            local maxToDraw = math.max(1, math.floor(remainingHeight / lineH))
-            local drawCount = math.min(#hooks, maxToDraw)
+            local badgeW = math.floor(82 * sc)
+            local descX = cardX + pad + badgeW + math.floor(6 * sc)
+            local maxDescW = (cardX + cardW - pad) - descX
 
-            for i = 1, drawCount do
-                local h = hooks[i]
-                local c = h.color or { r = 0.8, g = 0.8, b = 0.8 }
-                local badge = string.format("[%s]", h.tag or "EVENT")
-                p:drawText(badge, cardX + pad, currY, c.r, c.g, c.b, 1.0, font)
+            local remainingHeight = cardBottomY - currY
+            local maxHooksFit = math.max(0, math.floor(remainingHeight / lineH))
 
-                local hookDesc = string.format(" %s -> %s", tostring(h.event), tostring(h.desc or h.event))
-                p:drawText(hookDesc, cardX + pad + math.floor(85 * sc), currY, 0.88, 0.88, 0.88, 1.0, font)
-                currY = currY + lineH
-            end
+            if maxHooksFit > 0 then
+                local willOverflow = (#hooks > maxHooksFit)
+                local drawCount = willOverflow and math.max(0, maxHooksFit - 1) or #hooks
 
-            if #hooks > drawCount then
-                local moreText = string.format("... and %d more active hook(s)", #hooks - drawCount)
-                p:drawText(moreText, cardX + pad, currY, 0.60, 0.70, 0.80, 1.0, font)
+                for i = 1, drawCount do
+                    if currY + lineH > cardBottomY then break end
+                    local h = hooks[i]
+                    local c = h.color or { r = 0.8, g = 0.8, b = 0.8 }
+                    local badge = string.format("[%s]", h.tag or "EVENT")
+                    p:drawText(badge, cardX + pad, currY, c.r, c.g, c.b, 1.0, font)
+
+                    local rawDesc = tostring(h.desc or "")
+                    local hookFull = tostring(h.event)
+                    if #rawDesc > 0 and rawDesc ~= tostring(h.event) and rawDesc ~= (tostring(h.event) .. "()") then
+                        hookFull = string.format("%s (%s)", tostring(h.event), rawDesc)
+                    end
+
+                    local safeHookDesc = trimTextToWidth(font, hookFull, maxDescW)
+                    p:drawText(safeHookDesc, descX, currY, 0.88, 0.88, 0.88, 1.0, font)
+                    currY = currY + lineH
+                end
+
+                if willOverflow and currY + lineH <= cardBottomY then
+                    local moreText = string.format("... and %d more active hook(s)", #hooks - drawCount)
+                    p:drawText(moreText, cardX + pad, currY, 0.55, 0.65, 0.80, 1.0, font)
+                end
             end
         end
-    end
 
+        p:clearStencilRect()
+    end
     -- =========================================================================
     -- BOTTOM ACTION BAR
     -- =========================================================================

@@ -21,6 +21,11 @@ MPOptim.DefaultConfig = {
     JVM_KahluaGCPacer = true,
     JVM_PowerShield = true,
     JVM_StreamBufferBoost = true,
+    JVM_PathfindNativeAStar = true,
+    JVM_PathfindBudget = true,
+    JVM_PathfindSquareMerge = true,
+    JVM_PathfindVehicleThrottle = true,
+    JVM_PathfindBudgetMs = 2,
     JVM_ChunkCacheSize = 500,
     JVM_GCThresholdMB = 6000,
 
@@ -827,7 +832,7 @@ function MPOptim.Config.SyncToEngine()
     local bridge = (type(PZOEngineBridge) == "table" and PZOEngineBridge) or (type(PZOEngine) == "table" and PZOEngine)
     if bridge then
         if type(bridge.setJvmOption) == "function" then
-            local boolKeys = { "JVM_GLStateOptimizer", "JVM_StreamBufferBoost", "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_PowerShield", "JVM_AsyncModelCompile", "JVM_HordeHibernation" }
+            local boolKeys = { "JVM_GLStateOptimizer", "JVM_StreamBufferBoost", "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_PowerShield", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle", "JVM_PathfindNativeAStar" }
             for _, k in ipairs(boolKeys) do
                 local val = MPOptim.Config.Get(k)
                 if val ~= nil then
@@ -836,7 +841,7 @@ function MPOptim.Config.SyncToEngine()
             end
         end
         if type(bridge.setJvmIntOption) == "function" then
-            local intKeys = { "JVM_ChunkCacheSize", "JVM_GCThresholdMB" }
+            local intKeys = { "JVM_ChunkCacheSize", "JVM_GCThresholdMB", "JVM_PathfindBudgetMs" }
             for _, k in ipairs(intKeys) do
                 local val = tonumber(MPOptim.Config.Get(k))
                 if val then

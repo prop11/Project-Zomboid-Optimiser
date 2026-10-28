@@ -101,6 +101,7 @@ local function registerNativeOptions()
         opt:addTickBox("JVM_DeepChunkCache", "Deep RAM Chunk Cache (Zero Disk I/O)", (MPOptim.Config and MPOptim.Config.Get("JVM_DeepChunkCache")) ~= false, "Retains visited road and town chunks in RAM")
         opt:addTickBox("JVM_AsyncModelCompile", "Asynchronous 3D Model Compiling", (MPOptim.Config and MPOptim.Config.Get("JVM_AsyncModelCompile")) ~= false, "Compiles character clothing and vehicle textures in background threads")
         opt:addTickBox("JVM_HordeHibernation", "Distant Horde Spatial Hibernation", (MPOptim.Config and MPOptim.Config.Get("JVM_HordeHibernation")) ~= false, "Hibernates distant off-screen zombie pathfinding state in RAM")
+        opt:addTickBox("JVM_PathfindNativeAStar", "Native A* Fast Pathfinding (PZPathFind64.dll)", (MPOptim.Config and MPOptim.Config.Get("JVM_PathfindNativeAStar")) ~= false, "Replaces linear-scan decrease-key with indexed decrease-key in PZPathFind64.dll")
 
         opt.apply = function(self)
             local keyOpt = self:getOption("OptimizerHotkey")
@@ -117,7 +118,7 @@ local function registerNativeOptions()
                 "Vehicle_SuspendBackgroundCleanups", "Vehicle_ThreadedModelSlots",
                 "GC_SmartIdleGC", "GC_PurgeThresholdMB", "Blood_AutoClean", "Corpse_AutoClean", "Corpse_IntervalHours", "Debris_AutoClean",
                 "Animal_CleanTracks", "Base_ProtectPlayerStructures",
-                "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_AsyncModelCompile", "JVM_HordeHibernation"
+                "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_PathfindNativeAStar"
             }) do
                 local o = self:getOption(optKey)
                 if o and o.value ~= nil then

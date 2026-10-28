@@ -714,10 +714,10 @@ MPOptim.Presets = {
         Animal_CleanTracks = false,
         Fire_Optimize = false,
         GC_SmartIdleGC = false,
-    ModShield_Enabled = true,
-    Mod_PacedEventRate = true,          -- Paces 3rd-party mod OnTick / OnPlayerUpdate handlers to 60Hz and spreads them across frames
-    Mod_ZombieScriptLOD = true,         -- Runs 3rd-party zombie mod scripts every frame near the player, throttling far zombies across staggered frames
-    Plumbing_ThrottleWaterPipes = true,
+        ModShield_Enabled = false,
+        Mod_PacedEventRate = false,
+        Mod_ZombieScriptLOD = false,
+        Plumbing_ThrottleWaterPipes = false,
     
         Vehicle_ChunkPriorityMode = false,
         GFX_EnforceTextureCompression = false,
@@ -826,6 +826,43 @@ function MPOptim.Config.Load()
         line = reader:readLine()
     end
     reader:close()
+
+    -- Check for startup benchmark / argument overrides (pzo-bench.txt and pzo-args.txt in ~/Zomboid/Lua/)
+    local overrideFiles = { "pzo-bench.txt", "pzo-args.txt" }
+    for _, ovFile in ipairs(overrideFiles) do
+        local ovReader = getFileReader(ovFile, false)
+        if ovReader then
+            local ovLine = ovReader:readLine()
+            while ovLine do
+                local trimmed = string.match(ovLine, "^%s*(.-)%s*$") or ""
+                if trimmed ~= "" and string.sub(trimmed, 1, 1) ~= "#" and string.sub(trimmed, 1, 1) ~= ";" then
+                    local k, v = string.match(trimmed, "^([^=]+)=(.*)$")
+                    if k and v then
+                        local key = string.lower(string.match(k, "^%s*(.-)%s*$"))
+                        local rawVal = string.lower(string.match(v, "^%s*(.-)%s*$"))
+                        local isTrue = (rawVal == "1" or rawVal == "true" or rawVal == "on")
+                        local isFalse = (rawVal == "0" or rawVal == "false" or rawVal == "off")
+
+                        if key == "mod_paced" or key == "mod_pacedeventrate" or key == "pace" then
+                            if isTrue then MPOptim.Config.Current["Mod_PacedEventRate"] = true end
+                            if isFalse then MPOptim.Config.Current["Mod_PacedEventRate"] = false end
+                        elseif key == "zombie_lod" or key == "mod_zombiescriptlod" or key == "lod" then
+                            if isTrue then MPOptim.Config.Current["Mod_ZombieScriptLOD"] = true end
+                            if isFalse then MPOptim.Config.Current["Mod_ZombieScriptLOD"] = false end
+                        elseif key == "benchmark_baseline" or (key == "pzo_benchmark" and rawVal == "baseline") then
+                            MPOptim.Config.Current["Mod_PacedEventRate"] = false
+                            MPOptim.Config.Current["Mod_ZombieScriptLOD"] = false
+                        elseif key == "benchmark_optimized" or (key == "pzo_benchmark" and rawVal == "optimized") then
+                            MPOptim.Config.Current["Mod_PacedEventRate"] = true
+                            MPOptim.Config.Current["Mod_ZombieScriptLOD"] = true
+                        end
+                    end
+                end
+                ovLine = ovReader:readLine()
+            end
+            ovReader:close()
+        end
+    end
 
     -- One-time migration: reset Vehicle_LimitDriveZoom and Vehicle_ScaleLightingFPS to false
     -- so existing users immediately get vanilla road chunk lookahead without outrunning chunk loading at max speed.

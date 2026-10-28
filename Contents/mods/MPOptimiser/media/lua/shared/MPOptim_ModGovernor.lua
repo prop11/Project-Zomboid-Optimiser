@@ -118,3 +118,132 @@ end
 if Events and Events.OnTick and Events.OnTick.Add then
     Events.OnTick.Add(onGovernorTick)
 end
+
+-- =========================================================================
+-- COMMAND PROCESSOR & RUNTIME TOGGLES (Benchmarking & Tuning)
+-- =========================================================================
+function MPOptim.ModGovernor.ProcessCommand(cmdText)
+    if not cmdText or type(cmdText) ~= "string" then
+        return false, "No command provided"
+    end
+    local lower = string.lower(string.match(cmdText, "^%s*(.-)%s*$") or "")
+    local parts = {}
+    for word in string.gmatch(lower, "%S+") do
+        table.insert(parts, word)
+    end
+    if #parts == 0 then
+        local pState = MPOptim.Config.Get("Mod_PacedEventRate") and "ON" or "OFF"
+        local lState = MPOptim.Config.Get("Mod_ZombieScriptLOD") and "ON" or "OFF"
+        return true, string.format("Governor Status: Pacing=%s | ZombieLOD=%s | FrameCount=%d", pState, lState, MPOptim.ModGovernor.FrameCount or 0)
+    end
+
+    local action = parts[1]
+    local val = parts[2]
+
+    if action == "pace" or action == "pacing" or action == "mod_paced" then
+        local enable = true
+        if val == "0" or val == "off" or val == "false" or val == "disable" then
+            enable = false
+        elseif val == "toggle" or val == nil then
+            enable = not MPOptim.Config.Get("Mod_PacedEventRate")
+        end
+        MPOptim.Config.Set("Mod_PacedEventRate", enable)
+        MPOptim.Config.Save()
+        return true, "Mod Event Pacing (60Hz clamp & frame spread): " .. (enable and "ENABLED" or "DISABLED")
+
+    elseif action == "lod" or action == "zombie_lod" or action == "zombies" then
+        local enable = true
+        if val == "0" or val == "off" or val == "false" or val == "disable" then
+            enable = false
+        elseif val == "toggle" or val == nil then
+            enable = not MPOptim.Config.Get("Mod_ZombieScriptLOD")
+        end
+        MPOptim.Config.Set("Mod_ZombieScriptLOD", enable)
+        MPOptim.Config.Save()
+        return true, "Zombie Script LOD (near-player focus): " .. (enable and "ENABLED" or "DISABLED")
+
+    elseif action == "benchmark" or action == "bench" then
+        if val == "baseline" or val == "vanilla" or val == "off" then
+            MPOptim.Config.Set("Mod_PacedEventRate", false)
+            MPOptim.Config.Set("Mod_ZombieScriptLOD", false)
+            MPOptim.Config.Save()
+            return true, "BENCHMARK BASELINE ACTIVE: Mod Pacing & Zombie LOD DISABLED"
+        elseif val == "optimized" or val == "pzo" or val == "on" then
+            MPOptim.Config.Set("Mod_PacedEventRate", true)
+            MPOptim.Config.Set("Mod_ZombieScriptLOD", true)
+            MPOptim.Config.Save()
+            return true, "BENCHMARK OPTIMIZED ACTIVE: Mod Pacing & Zombie LOD ENABLED"
+        else
+            return true, "Usage: /pzo benchmark baseline | /pzo benchmark optimized"
+        end
+
+    elseif action == "status" then
+        local pacing = MPOptim.Config.Get("Mod_PacedEventRate") and "ON (60Hz Clamp)" or "OFF (Unrestricted)"
+        local lod = MPOptim.Config.Get("Mod_ZombieScriptLOD") and "ON (Near Focus & Stagger)" or "OFF (Every Frame)"
+        return true, string.format("PZO Governor: Pacing=%s | ZombieLOD=%s | FrameCount=%d", pacing, lod, MPOptim.ModGovernor.FrameCount or 0)
+    end
+
+    return false, "Unknown PZO command: " .. tostring(action) .. ". Usage: /pzo pace on|off, /pzo lod on|off, /pzo benchmark baseline|optimized, /pzo status"
+end
+
+-- Global console shortcuts
+function pzo_toggle_pacing(opt)
+    local state = (opt == nil and not MPOptim.Config.Get("Mod_PacedEventRate")) or (opt == true or opt == 1 or opt == "on")
+    MPOptim.Config.Set("Mod_PacedEventRate", state)
+    MPOptim.Config.Save()
+    print("[PZO] Mod Event Pacing set to: " .. tostring(state))
+    return state
+end
+
+function pzo_toggle_lod(opt)
+    local state = (opt == nil and not MPOptim.Config.Get("Mod_ZombieScriptLOD")) or (opt == true or opt == 1 or opt == "on")
+    MPOptim.Config.Set("Mod_ZombieScriptLOD", state)
+    MPOptim.Config.Save()
+    print("[PZO] Zombie Script LOD set to: " .. tostring(state))
+    return state
+end
+
+function pzo_status()
+    local pacing = MPOptim.Config.Get("Mod_PacedEventRate") and "ON" or "OFF"
+    local lod = MPOptim.Config.Get("Mod_ZombieScriptLOD") and "ON" or "OFF"
+    local msg = string.format("[PZO Status] Mod Pacing=%s | Zombie LOD=%s | FrameCount=%d", pacing, lod, MPOptim.ModGovernor.FrameCount or 0)
+    print(msg)
+    return msg
+end
+
+-- Register in-game chat command (/pzo ...)
+local function hookGovernorChat()
+    if not ISChat or not ISChat.onCommandEntered or ISChat._pzoGovernorHooked then return end
+    ISChat._pzoGovernorHooked = true
+    local origOnCommandEntered = ISChat.onCommandEntered
+
+    ISChat.onCommandEntered = function(self, ...)
+        local chat = ISChat.instance
+        if chat and chat.textEntry then
+            local text = chat.textEntry:getText() or ""
+            local trimmed = string.match(text, "^%s*(.-)%s*$") or ""
+            local lower = string.lower(trimmed)
+            if string.sub(lower, 1, 5) == "/pzo " or lower == "/pzo" then
+                local cmdBody = string.sub(trimmed, 6)
+                local handled, reply = MPOptim.ModGovernor.ProcessCommand(cmdBody)
+                if handled then
+                    chat.textEntry:setText("")
+                    if chat.unfocus then chat:unfocus() end
+                    local pObj = getPlayer and getPlayer()
+                    if pObj and MPOptim.Utils and MPOptim.Utils.Notify then
+                        MPOptim.Utils.Notify(pObj, "[PZO] " .. (reply or "Command processed"), true)
+                    end
+                    if print then
+                        print("[PZO Command] " .. (reply or "Command processed"))
+                    end
+                    return
+                end
+            end
+        end
+        return origOnCommandEntered(self, ...)
+    end
+end
+
+if Events and Events.OnGameStart and Events.OnGameStart.Add then
+    Events.OnGameStart.Add(hookGovernorChat)
+end

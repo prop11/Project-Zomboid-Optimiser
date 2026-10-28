@@ -1097,22 +1097,33 @@ function MPOptim_SettingsUI:createChildren()
         list:drawRectBorder(0, y, list:getWidth(), item.height, 0.25, 0.20, 0.30, 0.45)
 
         local data = item.item
-        local memKb = math.floor(data.estimatedBytes / 1024)
-        local memStr = (memKb > 1024) and string.format("%.1f MB", memKb / 1024) or string.format("%d KB", memKb)
+        local memKb = math.floor((data.estimatedBytes or 0) / 1024)
+        local memStr = (memKb >= 1024) and string.format("%.1f MB", memKb / 1024) or string.format("%d KB", memKb)
 
-        local ratingColor = { r = 0.40, g = 0.95, b = 0.45 }
+        local ratingColor = { r = 0.35, g = 0.95, b = 0.45 }
         if data.rating == "MODERATE" then
-            ratingColor = { r = 0.95, g = 0.85, b = 0.35 }
-        elseif data.rating == "HEAVY" then
-            ratingColor = { r = 0.95, g = 0.50, b = 0.20 }
-        elseif data.rating == "INTENSIVE" then
-            ratingColor = { r = 0.95, g = 0.25, b = 0.25 }
+            ratingColor = { r = 0.95, g = 0.85, b = 0.30 }
+        elseif data.rating == "HIGH" then
+            ratingColor = { r = 1.00, g = 0.55, b = 0.20 }
+        elseif data.rating == "VERY HIGH" then
+            ratingColor = { r = 1.00, g = 0.25, b = 0.25 }
         end
 
         local textY = y + math.floor((item.height - fontH) / 2)
-        list:drawText(data.name, math.floor(10 * scale), textY, 0.92, 0.92, 0.92, 1.0, smallFont)
-        list:drawText("[" .. data.rating .. "]", list:getWidth() - math.floor(150 * scale), textY, ratingColor.r, ratingColor.g, ratingColor.b, 1.0, smallFont)
-        list:drawText(memStr, list:getWidth() - math.floor(70 * scale), textY, 0.70, 0.85, 1.0, 1.0, smallFont)
+        local rightPad = math.floor(8 * scale)
+        local memX = list:getWidth() - math.floor(65 * scale) - rightPad
+        local ratingX = memX - math.floor(95 * scale)
+        local hooksX = ratingX - math.floor(45 * scale)
+
+        local displayName = data.name or data.id or "Unknown Mod"
+        list:drawText(displayName, math.floor(10 * scale), textY, 0.92, 0.92, 0.92, 1.0, smallFont)
+
+        local hCount = data.hookCount or 0
+        local hColor = (hCount > 5 and {r=1.0, g=0.35, b=0.35}) or (hCount > 0 and {r=0.9, g=0.8, b=0.4}) or {r=0.55, g=0.6, b=0.7}
+        list:drawText(string.format("%dh", hCount), hooksX, textY, hColor.r, hColor.g, hColor.b, 1.0, smallFont)
+
+        list:drawText("[" .. tostring(data.rating or "LIGHT") .. "]", ratingX, textY, ratingColor.r, ratingColor.g, ratingColor.b, 1.0, smallFont)
+        list:drawText(memStr, memX, textY, 0.70, 0.85, 1.0, 1.0, smallFont)
 
         return y + item.height
     end
@@ -1145,9 +1156,10 @@ function MPOptim_SettingsUI:createChildren()
         local font = (UIFont and UIFont.Small) or 0
         local mFont = (UIFont and UIFont.Medium) or 0
         local sc, fH = MPOptim.Utils.GetUIScale()
-        local lineH = math.max(22, math.floor(fH + 8 * sc))
+        local lineH = math.max(20, math.floor(fH + 6 * sc))
 
-        local profSummary = (self.profilerData and string.format("Active Mods: %d | Total Estimated Memory: %.1f MB", self.profilerData.totalMods, self.profilerData.totalMemoryMB)) or "Scanning..."
+        local pData = self.profilerData
+        local profSummary = (pData and string.format("Active Mods: %d | Hooks: %d | Total Lua Memory: %.1f MB", pData.totalMods or 0, pData.totalHooks or 0, pData.totalMemoryMB or 0)) or "Scanning Lua VM..."
         p:drawText(profSummary, math.floor(200 * sc), math.floor(16 * sc), 0.35, 0.85, 1.0, 1.0, font)
 
         local cardX = math.floor(16 * sc) + profilerLeftW + math.floor(16 * sc)
@@ -1155,37 +1167,87 @@ function MPOptim_SettingsUI:createChildren()
         local cardW = p.width - cardX - math.floor(16 * sc)
         local cardH = profilerListH
 
-        p:drawRect(cardX, cardY, cardW, cardH, 0.70, 0.05, 0.07, 0.11)
+        p:drawRect(cardX, cardY, cardW, cardH, 0.75, 0.05, 0.07, 0.11)
         p:drawRectBorder(cardX, cardY, cardW, cardH, 0.85, 0.22, 0.38, 0.60)
         p:drawRect(cardX + 1, cardY + 1, cardW - 2, 2, 0.95, 0.20, 0.75, 1.0)
 
-        local pad = math.floor(16 * sc)
+        local pad = math.floor(14 * sc)
         local currY = cardY + pad
 
         local mod = self.selectedModData
         if not mod then
-            p:drawText("Select a mod on the left to inspect its resource usage.", cardX + pad, currY, 0.70, 0.70, 0.70, 1.0, font)
+            p:drawText("Select a mod on the left to inspect its real-time resource usage.", cardX + pad, currY, 0.70, 0.70, 0.70, 1.0, font)
             return
         end
 
-        p:drawText(mod.name, cardX + pad, currY, 0.40, 0.85, 1.0, 1.0, mFont)
+        p:drawText(mod.name or mod.id, cardX + pad, currY, 0.35, 0.85, 1.0, 1.0, mFont)
+        currY = currY + lineH + math.floor(4 * sc)
+
+        local metaStr = string.format("ID: %s  |  Author: %s  |  Version: %s", tostring(mod.id), tostring(mod.author), tostring(mod.version))
+        p:drawText(metaStr, cardX + pad, currY, 0.70, 0.75, 0.85, 1.0, font)
+        currY = currY + lineH + math.floor(4 * sc)
+
+        local ratingColor = { r = 0.35, g = 0.95, b = 0.45 }
+        local ratingDesc = "Minimal CPU/frame impact; lightweight hooks."
+        if mod.rating == "MODERATE" then
+            ratingColor = { r = 0.95, g = 0.85, b = 0.30 }
+            ratingDesc = "Moderate CPU impact; periodic or context event listeners."
+        elseif mod.rating == "HIGH" then
+            ratingColor = { r = 1.00, g = 0.55, b = 0.20 }
+            ratingDesc = "Noticeable CPU impact during simulation; frequent update cycles."
+        elseif mod.rating == "VERY HIGH" then
+            ratingColor = { r = 1.00, g = 0.25, b = 0.25 }
+            ratingDesc = "WARNING: Critical FPS impact! Active per-frame (60Hz) hooks running."
+        end
+
+        local ratingText = string.format("Performance Rating: [%s]  (Stress Score: %d)", tostring(mod.rating), mod.stressScore or 0)
+        p:drawText(ratingText, cardX + pad, currY, ratingColor.r, ratingColor.g, ratingColor.b, 1.0, font)
+        currY = currY + lineH
+
+        p:drawText(ratingDesc, cardX + pad, currY, 0.75, 0.75, 0.75, 1.0, font)
         currY = currY + lineH + math.floor(6 * sc)
 
-        local memKb = math.floor(mod.estimatedBytes / 1024)
-        local memStr = (memKb > 1024) and string.format("%.2f MB", memKb / 1024) or string.format("%d KB", memKb)
+        local memKb = math.floor((mod.estimatedBytes or 0) / 1024)
+        local memStr = (memKb >= 1024) and string.format("%.2f MB", memKb / 1024) or string.format("%d KB", memKb)
+        local memInfo = string.format("Lua Heap Footprint: %s  (%d tables, %d closures)", memStr, mod.tableCount or 0, mod.closureCount or 0)
+        p:drawText(memInfo, cardX + pad, currY, 0.85, 0.90, 0.95, 1.0, font)
+        currY = currY + lineH
 
-        local detailLines = {
-            "Mod ID: " .. tostring(mod.id),
-            "Author: " .. tostring(mod.author),
-            "Version: " .. tostring(mod.version),
-            "Lua Memory Footprint: " .. memStr,
-            "Engine Event Hooks: " .. tostring(mod.hookCount) .. " active listeners",
-            "Performance Rating: [" .. tostring(mod.rating) .. "]"
-        }
+        local nsList = mod.namespaces or {}
+        local nsStr = (#nsList > 0) and table.concat(nsList, ", ") or "None detected (Clean local scope / minimal globals)"
+        p:drawText("Global Namespaces: " .. nsStr, cardX + pad, currY, 0.65, 0.75, 0.85, 1.0, font)
+        currY = currY + lineH + math.floor(8 * sc)
 
-        for _, line in ipairs(detailLines) do
-            p:drawText(line, cardX + pad, currY, 0.90, 0.90, 0.90, 1.0, font)
-            currY = currY + lineH
+        p:drawRect(cardX + pad, currY, cardW - (pad * 2), 1, 0.40, 0.30, 0.45, 0.65)
+        currY = currY + math.floor(8 * sc)
+
+        local hookHeader = string.format("Active Engine Event Hooks (%d total listeners):", mod.hookCount or 0)
+        p:drawText(hookHeader, cardX + pad, currY, 0.95, 0.95, 0.95, 1.0, font)
+        currY = currY + lineH + math.floor(2 * sc)
+
+        local hooks = mod.hooks or {}
+        if #hooks == 0 then
+            p:drawText("No active engine events hooked (0 listeners).", cardX + pad, currY, 0.50, 0.60, 0.70, 1.0, font)
+        else
+            local remainingHeight = (cardY + cardH) - currY - pad
+            local maxToDraw = math.max(1, math.floor(remainingHeight / lineH))
+            local drawCount = math.min(#hooks, maxToDraw)
+
+            for i = 1, drawCount do
+                local h = hooks[i]
+                local c = h.color or { r = 0.8, g = 0.8, b = 0.8 }
+                local badge = string.format("[%s]", h.tag or "EVENT")
+                p:drawText(badge, cardX + pad, currY, c.r, c.g, c.b, 1.0, font)
+
+                local hookDesc = string.format(" %s -> %s", tostring(h.event), tostring(h.desc or h.event))
+                p:drawText(hookDesc, cardX + pad + math.floor(85 * sc), currY, 0.88, 0.88, 0.88, 1.0, font)
+                currY = currY + lineH
+            end
+
+            if #hooks > drawCount then
+                local moreText = string.format("... and %d more active hook(s)", #hooks - drawCount)
+                p:drawText(moreText, cardX + pad, currY, 0.60, 0.70, 0.80, 1.0, font)
+            end
         end
     end
 

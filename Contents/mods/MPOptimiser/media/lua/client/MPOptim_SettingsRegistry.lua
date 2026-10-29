@@ -50,8 +50,19 @@ local function applyAnimals()
     if MPOptim.AnimalOptimizer and MPOptim.AnimalOptimizer.Update then MPOptim.AnimalOptimizer.Update() end
 end
 
-local function fmtSuffix(suffix)
-    return function(v) return tostring(v) .. suffix end
+-- Value boxes are drawn every frame; the language only changes with a Lua reload
+local unitCache = {}
+local function unit(id, english)
+    local t = unitCache[id]
+    if not t then
+        t = MPOptim.GetText("UI_MPOptim_Unit_" .. id, english)
+        unitCache[id] = t
+    end
+    return t
+end
+
+local function fmtUnit(id, english)
+    return function(v) return tostring(v) .. " " .. unit(id, english) end
 end
 
 --[[
@@ -159,7 +170,7 @@ S.List = {
       label = "Lighting Refresh Rate",
       tip = "How many times a second dynamic lighting is recalculated. Presets set this too.",
       impact = {},
-      values = { { key = "Lighting_FPS", values = { 15, 20, 30, 45, 60 }, format = fmtSuffix(" FPS"), label = "Refresh rate" } },
+      values = { { key = "Lighting_FPS", values = { 15, 20, 30, 45, 60 }, format = fmtUnit("FPS", "FPS"), label = "Refresh rate" } },
       valueHint = "Lower saves CPU; lights update less often.",
       onValueChange = applyHorde },
 
@@ -178,7 +189,7 @@ S.List = {
       label = "Smart Idle Memory Sweep",
       tip = "Runs a full memory sweep only while you sleep, read or rest, and only above the threshold below.",
       impact = { RAM = 1 },
-      values = { { key = "GC_PurgeThresholdMB", values = { 1200, 1600, 2000, 2400, 2800, 3200, 4000 }, format = fmtSuffix(" MB"), label = "Sweep above" } },
+      values = { { key = "GC_PurgeThresholdMB", values = { 1200, 1600, 2000, 2400, 2800, 3200, 4000 }, format = fmtUnit("MB", "MB"), label = "Sweep above" } },
       valueHint = "Lower sweeps more often." },
 
     -- Hordes & Combat ---------------------------------------------------------------------------------------------
@@ -219,7 +230,7 @@ S.List = {
       tip = "Fewer zombies groan at once: only the nearest ones, as set below, get a voice (the game allows 20).",
       impact = { CPU = 1 },
       needsJava = true,
-      values = { { key = "Horde_VoiceLimit", values = { 8, 12, 16, 20 }, format = fmtSuffix(" voices"), label = "Voices at once" } },
+      values = { { key = "Horde_VoiceLimit", values = { 8, 12, 16, 20 }, format = fmtUnit("Voices", "voices"), label = "Voices at once" } },
       valueHint = "Lower is quieter in big hordes." },
     { tab = "hordes", section = "Combat & swarms",
       key = "Horde_ImposterRendering",
@@ -236,7 +247,7 @@ S.List = {
       tip = "Master switch for the driving options below. They start above the speed set here and stop again once you slow down.",
       impact = {},
       noVerdict = true,
-      values = { { key = "Vehicle_SpeedThreshold", values = { 10, 15, 20, 25, 30, 40, 50 }, format = fmtSuffix(" km/h"), label = "Start above" } } },
+      values = { { key = "Vehicle_SpeedThreshold", values = { 10, 15, 20, 25, 30, 40, 50 }, format = fmtUnit("Kmh", "km/h"), label = "Start above" } } },
     { tab = "vehicles", section = "Driving",
       key = "Vehicle_SuspendBackgroundCleanups", requires = "Vehicle_ChunkPriorityMode",
       label = "Pause Cleanups While Driving",
@@ -293,8 +304,8 @@ S.List = {
       label = "Automatic Blood Cleanup",
       tip = "Removes floor blood around you on a timer.",
       impact = { GPU = 1, Visual = -1 },
-      values = { { key = "Blood_CleanRadius", values = { 15, 20, 30, 40, 50, 60 }, format = fmtSuffix(" tiles"), label = "Radius" },
-                 { key = "Blood_IntervalHours", values = { 1, 2, 4, 8, 12, 24 }, format = fmtSuffix(" hours"), label = "Every" } } },
+      values = { { key = "Blood_CleanRadius", values = { 15, 20, 30, 40, 50, 60 }, format = fmtUnit("Tiles", "tiles"), label = "Radius" },
+                 { key = "Blood_IntervalHours", values = { 1, 2, 4, 8, 12, 24 }, format = fmtUnit("Hours", "hours"), label = "Every" } } },
     { tab = "cleanup", section = "Blood",
       key = "Blood_RemoveWall", requires = "Blood_AutoClean",
       label = "Include Wall Blood",
@@ -307,9 +318,9 @@ S.List = {
       tip = "Removes old zombie corpses around you on a timer, outside safehouses and player bases.",
       note = "Deletes corpses and anything still on them that the options below allow.",
       impact = { CPU = 2, RAM = 1, Load = 1 },
-      values = { { key = "Corpse_MinAgeHours", values = { 0, 4, 6, 12, 24, 48, 72 }, format = function(v) return v == 0 and "Any age" or (tostring(v) .. " hours old") end, label = "Older than" },
-                 { key = "Corpse_CleanRadius", values = { 15, 20, 30, 40, 50, 60 }, format = fmtSuffix(" tiles"), label = "Radius" },
-                 { key = "Corpse_IntervalHours", values = { 1, 2, 4, 6, 12, 24 }, format = fmtSuffix(" hours"), label = "Every" } } },
+      values = { { key = "Corpse_MinAgeHours", values = { 0, 4, 6, 12, 24, 48, 72 }, format = function(v) return v == 0 and unit("AnyAge", "Any age") or (tostring(v) .. " " .. unit("HoursOld", "hours old")) end, label = "Older than" },
+                 { key = "Corpse_CleanRadius", values = { 15, 20, 30, 40, 50, 60 }, format = fmtUnit("Tiles", "tiles"), label = "Radius" },
+                 { key = "Corpse_IntervalHours", values = { 1, 2, 4, 6, 12, 24 }, format = fmtUnit("Hours", "hours"), label = "Every" } } },
     { tab = "cleanup", section = "Corpses",
       key = "Corpse_CleanEmptyOnly", requires = "Corpse_AutoClean",
       label = "Only Empty Corpses",
@@ -333,8 +344,8 @@ S.List = {
       tip = "Removes the kinds of ground clutter chosen below around you on a timer. Logs, player bases and safehouses are never touched.",
       note = "Deletes items from the ground.",
       impact = { CPU = 1, Load = 1 },
-      values = { { key = "Debris_CleanRadius", values = { 15, 25, 35, 45, 60, 75 }, format = fmtSuffix(" tiles"), label = "Radius" },
-                 { key = "Debris_IntervalHours", values = { 2, 4, 8, 12, 24, 48 }, format = fmtSuffix(" hours"), label = "Every" } } },
+      values = { { key = "Debris_CleanRadius", values = { 15, 25, 35, 45, 60, 75 }, format = fmtUnit("Tiles", "tiles"), label = "Radius" },
+                 { key = "Debris_IntervalHours", values = { 2, 4, 8, 12, 24, 48 }, format = fmtUnit("Hours", "hours"), label = "Every" } } },
     { tab = "cleanup", section = "Ground clutter",
       key = "Debris_CleanCasings", requires = "Debris_AutoClean",
       label = "Spent Casings and Shells", tip = "Bullet casings and shotgun shells.", impact = {}, noVerdict = true },
@@ -362,7 +373,7 @@ S.List = {
       tip = "Caps rain strength at the level below and uses the game's ground-only puddle mode. The two options under it need this on.",
       note = "Rain is lighter in strong storms.",
       impact = { GPU = 1, CPU = 1, Visual = -1 },
-      values = { { key = "Weather_MaxRainDensity", values = { 0.40, 0.50, 0.60, 0.70, 0.85, 1.00 }, format = function(v) return tostring(math.floor(v * 100 + 0.5)) .. " percent" end, label = "Max rain" } },
+      values = { { key = "Weather_MaxRainDensity", values = { 0.40, 0.50, 0.60, 0.70, 0.85, 1.00 }, format = function(v) return tostring(math.floor(v * 100 + 0.5)) .. " " .. unit("Percent", "percent") end, label = "Max rain" } },
       onChange = applyWeather, onValueChange = applyWeather },
     { tab = "cleanup", section = "Weather, fire and animals",
       key = "Weather_PuddleOptimization", requires = "Weather_Optimize",
@@ -401,7 +412,7 @@ S.List = {
       label = "Quiet Distant Animals",
       tip = "Animals more than 35 tiles away stop making sounds once the number below are already heard nearby.",
       impact = { CPU = 1 },
-      values = { { key = "Animal_MaxAudioEmitters", values = { 2, 4, 6, 8, 12 }, format = fmtSuffix(" animals"), label = "Heard at once" } },
+      values = { { key = "Animal_MaxAudioEmitters", values = { 2, 4, 6, 8, 12 }, format = fmtUnit("Animals", "animals"), label = "Heard at once" } },
       onChange = applyAnimals, onValueChange = applyAnimals },
 
     { tab = "cleanup", section = "Protection",
@@ -418,7 +429,7 @@ S.List = {
       label = "Cleanup Scan Speed",
       tip = "How many tiles background cleanups check per frame.",
       impact = {},
-      values = { { key = "Admin_StaggerPerTick", values = { 5, 10, 15, 20, 25, 35, 50 }, format = fmtSuffix(" tiles per frame"), label = "Scan speed" } },
+      values = { { key = "Admin_StaggerPerTick", values = { 5, 10, 15, 20, 25, 35, 50 }, format = fmtUnit("TilesPerFrame", "tiles per frame"), label = "Scan speed" } },
       valueHint = "Higher finishes sweeps sooner but costs more per frame." },
 
     -- Java Engine -------------------------------------------------------------------------------------------------
@@ -465,7 +476,7 @@ S.List = {
       label = "Pathfinding Time Budget",
       tip = "Answers queued path requests until the time below is used up, instead of the game's fixed 2 per pass, so zombies start moving sooner.",
       impact = { Smooth = 1 }, needsJava = true,
-      values = { { key = "JVM_PathfindBudgetMs", values = { 1, 2, 3, 5, 8, 10 }, format = fmtSuffix(" ms"), label = "Budget" } } },
+      values = { { key = "JVM_PathfindBudgetMs", values = { 1, 2, 3, 5, 8, 10 }, format = fmtUnit("Ms", "ms"), label = "Budget" } } },
     { tab = "java", section = "Pathfinding",
       key = "JVM_PathfindSquareMerge",
       label = "Merge Repeated Square Updates",
@@ -495,9 +506,11 @@ S.List = {
       note = "If FSR was off when the game started, switching it on applies on the next launch.",
       impact = { GPU = 3, FPS = 2, Visual = -1 }, needsJava = true,
       values = { { key = "JVM_FSRScale", values = { 50, 59, 67, 77, 85, 90 }, format = function(v)
-                    local names = { [50] = "Performance", [59] = "Balanced", [67] = "Quality", [77] = "Ultra Quality" }
-                    return (names[v] and (names[v] .. " ") or "") .. tostring(v) .. " percent" end, label = "Render scale" },
-                 { key = "JVM_FSRSharpness", values = { 0, 20, 40, 60, 80, 100 }, format = fmtSuffix(" percent"), label = "Sharpness" } },
+                    local names = { [50] = { "FsrPerformance", "Performance" }, [59] = { "FsrBalanced", "Balanced" },
+                                    [67] = { "FsrQuality", "Quality" }, [77] = { "FsrUltra", "Ultra Quality" } }
+                    local n = names[v]
+                    return (n and (unit(n[1], n[2]) .. " ") or "") .. tostring(v) .. " " .. unit("Percent", "percent") end, label = "Render scale" },
+                 { key = "JVM_FSRSharpness", values = { 0, 20, 40, 60, 80, 100 }, format = fmtUnit("Percent", "percent"), label = "Sharpness" } },
       valueHint = "Lower scale is faster and softer." },
     { tab = "java", section = "FSR upscaling",
       key = "JVM_FSRDynamic", requires = "JVM_FSREnabled",
@@ -607,22 +620,29 @@ end
 
 -- One line per resource the switch changes, for tooltips: "Saves VRAM (a lot)"
 function S.ImpactLines(setting)
-    local sizes = { "a little", "noticeably", "a lot" }
+    local sizes = {
+        MPOptim.GetText("UI_MPOptim_V2_ImpactSize1", "a little"),
+        MPOptim.GetText("UI_MPOptim_V2_ImpactSize2", "noticeably"),
+        MPOptim.GetText("UI_MPOptim_V2_ImpactSize3", "a lot"),
+    }
+    local fixed = {
+        Visual = { "Looks better", "Looks worse" },
+        Smooth = { "Fewer stutters", "May stutter" },
+        FPS = { "Higher FPS", "Lower FPS" },
+        Load = { "Faster loading", "Slower loading" },
+    }
     local lines = {}
     for _, r in ipairs(S.Resources) do
         local v = setting.impact and setting.impact[r.id]
         if v and v ~= 0 then
             local verb
-            if r.id == "Visual" then
-                verb = v > 0 and "Looks better" or "Looks worse"
-            elseif r.id == "Smooth" then
-                verb = v > 0 and "Fewer stutters" or "May stutter"
-            elseif r.id == "FPS" then
-                verb = v > 0 and "Higher FPS" or "Lower FPS"
-            elseif r.id == "Load" then
-                verb = v > 0 and "Faster loading" or "Slower loading"
+            local f = fixed[r.id]
+            if f then
+                verb = v > 0 and MPOptim.GetText("UI_MPOptim_V2_ImpactUp_" .. r.id, f[1]) or MPOptim.GetText("UI_MPOptim_V2_ImpactDown_" .. r.id, f[2])
             else
-                verb = (v > 0 and "Saves " or "Uses more ") .. r.label
+                local name = MPOptim.GetText("UI_MPOptim_Res_" .. r.id, r.label)
+                verb = v > 0 and string.format(MPOptim.GetText("UI_MPOptim_V2_ImpactSaves", "Saves %s"), name)
+                    or string.format(MPOptim.GetText("UI_MPOptim_V2_ImpactUses", "Uses more %s"), name)
             end
             lines[#lines + 1] = verb .. " (" .. sizes[math.min(3, math.abs(v))] .. ")"
         end

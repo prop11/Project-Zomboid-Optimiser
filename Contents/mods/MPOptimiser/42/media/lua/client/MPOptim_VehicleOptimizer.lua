@@ -18,11 +18,20 @@ local lightingWasThrottled = false
 local savedAutoZoom = nil
 local autoZoomWasDisabled = false
 local fastStreak = 0
+-- Set when the roadside zombie options changed blending or imposters for fast driving; undone when slowing down
+local roadsideChanged = false
+
+local function restoreRoadside()
+    if not roadsideChanged then return end
+    roadsideChanged = false
+    if MPOptim.HordeOptimizer and MPOptim.HordeOptimizer.Apply then MPOptim.HordeOptimizer.Apply() end
+end
 local slowStreak = 0
 
 local function restoreVehicleState(player)
     fastStreak = 0
     slowStreak = 0
+    restoreRoadside()
 
     if lightingWasThrottled and PerformanceSettings then
         if savedLightingFPS and PerformanceSettings.setLightingFPS then
@@ -65,7 +74,9 @@ function MPOptim.VehicleOptimizer.Update()
 
             -- Opt-in gentle incremental GC step (Non-blocking: prevents entry hitches)
             if MPOptim.Config.Get("Vehicle_PreDrivePurge") == true then
-                collectgarbage("step", 250)
+                -- One full collection at entry, so one doesn't land mid-drive
+                local collect = (MPOptim.ModShield and MPOptim.ModShield.RawCollectGarbage) or collectgarbage
+                collect("collect")
             end
 
             -- Camera Auto-Zoom Limiter is strictly OPT-IN (Default: false)
@@ -133,21 +144,17 @@ function MPOptim.VehicleOptimizer.Update()
                 end
 
                 if MPOptim.Config.Get("Vehicle_ThrottleRoadsideZombies") == true and PerformanceSettings then
-                    local activePreset = MPOptim.Config.GetActivePresetName and MPOptim.Config.GetActivePresetName()
-                    if activePreset == "Experimental" then
-                        PerformanceSettings.numberZombiesBlended = 6
-                        PerformanceSettings.zombieAnimationSpeedFalloffCount = 3
-                    end
+                    PerformanceSettings.numberZombiesBlended = 6
+                    PerformanceSettings.zombieAnimationSpeedFalloffCount = 3
+                    roadsideChanged = true
                 end
 
                 if MPOptim.Config.Get("Vehicle_BoostImposterDistance") == true and DebugOptions and DebugOptions.instance then
-                    local activePreset = MPOptim.Config.GetActivePresetName and MPOptim.Config.GetActivePresetName()
-                    if activePreset == "Experimental" then
-                        local optImposter = DebugOptions.instance.zombieImposterRendering
-                        if optImposter and optImposter.setValue then optImposter:setValue(true) end
-                        local optInstanced = DebugOptions.instance.zombieRenderInstanced
-                        if optInstanced and optInstanced.setValue then optInstanced:setValue(true) end
-                    end
+                    local optImposter = DebugOptions.instance.zombieImposterRendering
+                    if optImposter and optImposter.setValue then optImposter:setValue(true) end
+                    local optInstanced = DebugOptions.instance.zombieRenderInstanced
+                    if optInstanced and optInstanced.setValue then optInstanced:setValue(true) end
+                    roadsideChanged = true
                 end
             end
         elseif speed <= stopThreshold then
@@ -156,6 +163,7 @@ function MPOptim.VehicleOptimizer.Update()
 
             if slowStreak >= 3 and isDrivingFast then
                 isDrivingFast = false
+                restoreRoadside()
 
                 if lightingWasThrottled and PerformanceSettings then
                     if savedLightingFPS and PerformanceSettings.setLightingFPS then

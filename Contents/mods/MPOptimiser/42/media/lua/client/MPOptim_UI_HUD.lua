@@ -2,38 +2,35 @@
     Project Zomboid Optimiser (Build 42 & 41)
     File: media/lua/client/MPOptim_UI_HUD.lua
     Author: prop11
-    Description: Zero-overhead, statically-batched real-time diagnostics HUD overlay with live Preset/Custom indicator and JVM telemetry.
+    Description: Small performance overlay: active preset, FPS, Lua memory, engine mode and a frame graph.
+                 Values refresh twice a second; dragging it saves its position.
 --]]
 
 require "MPOptim_Config"
 require "MPOptim_Utils"
+require "MPOptim_UIStyle"
 require "ISUI/ISPanel"
 
 MPOptim = MPOptim or {}
 MPOptim.HUD = MPOptim.HUD or {}
+local U = MPOptim.UI
+local C, T = U.C, U.T
 
 MPOptim_HUD = ISPanel:derive("MPOptim_HUD")
 
 local hudInstance = nil
 local frameHistory = {}
 local maxFrameHistory = 40
+local lastUpdate = 0
+local rows = {}
 
 function MPOptim_HUD:new(x, y, width, height)
     local o = ISPanel:new(x, y, width, height)
     setmetatable(o, self)
     self.__index = self
-    o.backgroundColor = { r = 0.05, g = 0.07, b = 0.11, a = 0.88 }
-    o.borderColor = { r = 0.22, g = 0.38, b = 0.60, a = 0.95 }
-    o.anchorLeft = true
-    o.anchorRight = false
-    o.anchorTop = true
-    o.anchorBottom = false
+    o.background = false
     o.moveWithMouse = true
     return o
-end
-
-function MPOptim_HUD:initialise()
-    ISPanel.initialise(self)
 end
 
 function MPOptim_HUD:onMouseUp(x, y)
@@ -45,121 +42,92 @@ function MPOptim_HUD:onMouseUp(x, y)
     end
 end
 
-local lastHudUpdate = 0
-local cachedPresetStr = "Profile: Balanced"
-local cachedPresetR, cachedPresetG, cachedPresetB = 0.35, 0.85, 1.0
-local cachedFPSStr = "FPS: 60"
-local cachedRAMStr = "Lua RAM: 0.0 MB"
-local cachedJvmStr = "JVM Heap: Inactive"
-local cachedStatusStr = "Status: Active (F10)"
-local cachedFPSR, cachedFPSG, cachedFPSB = 0.35, 0.95, 0.45
+local function fpsColor(fps)
+    if fps < 30 then return C.bad end
+    if fps < 55 then return C.warn end
+    return C.good
+end
 
-function MPOptim_HUD:updateDiagnostics()
-    local now = (getTimeInMillis and getTimeInMillis()) or 0
-    if now - lastHudUpdate < 500 then return end
-    lastHudUpdate = now
+local PRESET_NAMES = {
+    Balanced = { "UI_MPOptim_Preset_Balanced", "Balanced" },
+    Potato = { "UI_MPOptim_Preset_Aggressive", "Max Performance" },
+    Experimental = { "UI_MPOptim_V2_PresetExperimental", "Experimental" },
+    Server = { "UI_MPOptim_Preset_Server", "Dedicated Server" },
+}
 
-    local presetName = "Custom"
-    if MPOptim and MPOptim.Config and MPOptim.Config.GetActivePresetName then
-        presetName = MPOptim.Config.GetActivePresetName()
-    end
-    cachedPresetStr = "Profile: " .. tostring(presetName)
+local function updateRows()
+    local now = getTimestampMs and getTimestampMs() or 0
+    if now - lastUpdate < 500 and #rows > 0 then return end
+    lastUpdate = now
 
-    if presetName == "Balanced" then
-        cachedPresetR, cachedPresetG, cachedPresetB = 0.35, 0.85, 1.0
-    elseif presetName == "Potato" then
-        cachedPresetR, cachedPresetG, cachedPresetB = 0.95, 0.75, 0.25
-    elseif presetName == "Experimental" then
-        cachedPresetR, cachedPresetG, cachedPresetB = 0.95, 0.50, 0.15
-    elseif presetName == "Server" then
-        cachedPresetR, cachedPresetG, cachedPresetB = 0.45, 0.90, 0.50
-    elseif presetName == "All Optimisations Disabled" or presetName == "Test Mode" then
-        cachedPresetR, cachedPresetG, cachedPresetB = 0.95, 0.40, 0.30
-    else
-        cachedPresetR, cachedPresetG, cachedPresetB = 0.80, 0.55, 1.0
-    end
+    local preset = (MPOptim.Config and MPOptim.Config.GetActivePresetName and MPOptim.Config.GetActivePresetName()) or "Custom"
+    local pn = PRESET_NAMES[preset]
+    local presetStr = pn and T(pn[1], pn[2]) or tostring(preset)
 
-    local fps = 60
-    if MPOptim and MPOptim.Utils and MPOptim.Utils.getFPS then
-        fps = MPOptim.Utils.getFPS()
-    end
-    cachedFPSStr = "FPS: " .. tostring(fps)
+    local fps = (MPOptim.Utils.getFPS and MPOptim.Utils.getFPS()) or 0
+    frameHistory[#frameHistory + 1] = fps
+    if #frameHistory > maxFrameHistory then table.remove(frameHistory, 1) end
 
-    table.insert(frameHistory, fps)
-    if #frameHistory > maxFrameHistory then
-        table.remove(frameHistory, 1)
-    end
-
-    if fps < 30 then
-        cachedFPSR, cachedFPSG, cachedFPSB = 0.95, 0.25, 0.25
-    elseif fps < 55 then
-        cachedFPSR, cachedFPSG, cachedFPSB = 0.95, 0.85, 0.25
-    else
-        cachedFPSR, cachedFPSG, cachedFPSB = 0.35, 0.95, 0.45
-    end
-
-    local ramStr = (MPOptim and MPOptim.Utils and MPOptim.Utils.formatMemoryMB and MPOptim.Utils.formatMemoryMB()) or "N/A"
-    cachedRAMStr = "Lua RAM: " .. tostring(ramStr)
-
-    local isJvm = MPOptim.Utils and MPOptim.Utils.IsEngineAgentInjected and MPOptim.Utils.IsEngineAgentInjected()
+    local isJvm = MPOptim.Utils.IsEngineAgentInjected and MPOptim.Utils.IsEngineAgentInjected()
+    local engine
     if isJvm then
-        local ramGb = (MPOptim.Utils and MPOptim.Utils.GetOptimizedRAM and MPOptim.Utils.GetOptimizedRAM()) or 8
-        local channel = (PZOEngine and PZOEngine.getChannel and PZOEngine.getChannel()) or (PZOEngineBridge and PZOEngineBridge.getChannel and PZOEngineBridge.getChannel()) or "Stable"
-        if string.find(string.lower(tostring(channel)), "unstable") or string.find(string.lower(tostring(channel)), "beta") then
-            cachedJvmStr = "JVM: " .. tostring(ramGb) .. "GB [Unstable: Culling Active]"
-        else
-            cachedJvmStr = "JVM: " .. tostring(ramGb) .. "GB G1GC Active"
-        end
+        local ramGb = (MPOptim.Utils.GetOptimizedRAM and MPOptim.Utils.GetOptimizedRAM()) or 8
+        engine = string.format(T("UI_MPOptim_V2_HudJava", "Java, %s GB"), tostring(ramGb))
     else
-        cachedJvmStr = "Mode: Standard Lua (100% OK)"
+        engine = T("UI_MPOptim_V2_EngineLuaShort", "Lua only")
     end
+
+    rows = {
+        { T("UI_MPOptim_V2_StatPreset", "Preset"), presetStr, C.accent },
+        { T("UI_MPOptim_V2_StatFPS", "Frame rate"), tostring(fps), fpsColor(fps) },
+        { T("UI_MPOptim_V2_StatLuaRAM", "Lua memory"), tostring((MPOptim.Utils.formatMemoryMB and MPOptim.Utils.formatMemoryMB()) or "?"), C.text },
+        { T("UI_MPOptim_V2_StatEngine", "Engine"), engine, isJvm and C.good or C.dim },
+    }
+end
+
+function MPOptim_HUD:prerender()
+    U.rect(self, 0, 0, self.width, self.height, C.bg, 0.88)
 end
 
 function MPOptim_HUD:render()
-    if not self:isVisible() then return end
-    ISPanel.render(self)
+    updateRows()
+    local m = U.metrics()
+    local pad = math.floor(8 * m.scale)
+    local lineH = m.fh + math.floor(3 * m.scale)
 
-    self:updateDiagnostics()
+    U.rect(self, 0, 0, 3, self.height, C.accent)
+    for i, r in ipairs(rows) do
+        local y = pad + (i - 1) * lineH
+        U.text(self, r[1], pad + 3, y, C.dim, m.fS)
+        local v = U.trim(m.fS, r[2], self.width * 0.55)
+        self:drawTextRight(v, self.width - pad, y, r[3][1], r[3][2], r[3][3], 1, m.fS)
+    end
 
-    local font = (UIFont and UIFont.Small) or 0
-    local scale, fontH = MPOptim.Utils.GetUIScale()
-    local padX = math.floor(10 * scale)
-    local padY = math.floor(8 * scale)
-    local lineH = math.max(16, math.floor(fontH + 4 * scale))
-
-    self:drawText(cachedPresetStr, padX, padY + (0 * lineH), cachedPresetR, cachedPresetG, cachedPresetB, 1.0, font)
-    self:drawText(cachedFPSStr, padX, padY + (1 * lineH), cachedFPSR, cachedFPSG, cachedFPSB, 1.0, font)
-    self:drawText(cachedRAMStr, padX, padY + (2 * lineH), 0.90, 0.90, 0.90, 1.0, font)
-    self:drawText(cachedJvmStr, padX, padY + (3 * lineH), 0.35, 0.85, 1.0, 1.0, font)
-
-    local graphX = padX
-    local graphY = padY + (4 * lineH) + math.floor(4 * scale)
-    local graphW = self.width - (padX * 2)
-    local graphH = math.floor(22 * scale)
-
-    self:drawRect(graphX, graphY, graphW, graphH, 0.60, 0.02, 0.04, 0.08)
-    self:drawRectBorder(graphX, graphY, graphW, graphH, 0.80, 0.18, 0.30, 0.45)
-
+    local gx = pad + 3
+    local gy = pad + #rows * lineH + math.floor(3 * m.scale)
+    local gw = self.width - gx - pad
+    local gh = self.height - gy - pad
+    U.rect(self, gx, gy, gw, gh, C.well, 0.9)
+    -- 60 FPS guide line
+    local guideY = gy + gh - 1 - math.floor((60 / 120) * (gh - 2))
+    U.rect(self, gx, guideY, gw, 1, C.line, 0.8)
     if #frameHistory > 1 then
-        local barW = math.max(1, math.floor(graphW / maxFrameHistory))
+        local barW = math.max(1, math.floor(gw / maxFrameHistory))
         for i, val in ipairs(frameHistory) do
-            local clamped = math.max(10, math.min(120, val))
-            local barH = math.floor((clamped / 120.0) * (graphH - 2))
-            local bx = graphX + ((i - 1) * barW)
-            local by = graphY + graphH - 1 - barH
-            local r, g, b = 0.30, 0.90, 0.45
-            if val < 30 then r, g, b = 0.95, 0.25, 0.25
-            elseif val < 55 then r, g, b = 0.95, 0.80, 0.25 end
-            self:drawRect(bx, by, barW, barH, 0.90, r, g, b)
+            local clamped = math.max(5, math.min(120, val))
+            local barH = math.floor((clamped / 120) * (gh - 2))
+            local c = fpsColor(val)
+            self:drawRect(gx + (i - 1) * barW, gy + gh - 1 - barH, math.max(1, barW - 1), barH, 0.85, c[1], c[2], c[3])
         end
     end
+    U.border(self, 0, 0, self.width, self.height, C.line)
 end
 
 function MPOptim.SetHUDVisible(visible)
     if not hudInstance then
-        local scale, fontH = MPOptim.Utils.GetUIScale()
-        local w = math.max(180, math.floor(210 * scale))
-        local h = math.max(100, math.floor(125 * scale))
+        local m = U.metrics()
+        local w = math.max(190, math.floor(220 * m.scale))
+        local h = math.floor(8 * m.scale) * 2 + 4 * (m.fh + math.floor(3 * m.scale)) + math.floor(30 * m.scale)
         local x = (MPOptim.Config and MPOptim.Config.Get("UI_HUD_PosX")) or 25
         local y = (MPOptim.Config and MPOptim.Config.Get("UI_HUD_PosY")) or 25
         hudInstance = MPOptim_HUD:new(x, y, w, h)
@@ -170,8 +138,7 @@ function MPOptim.SetHUDVisible(visible)
 end
 
 function MPOptim.ToggleHUD()
-    local cur = (MPOptim.Config and MPOptim.Config.Get("UI_ShowHUD")) or false
-    local nextVal = not cur
+    local nextVal = not ((MPOptim.Config and MPOptim.Config.Get("UI_ShowHUD")) or false)
     if MPOptim.Config then
         MPOptim.Config.Set("UI_ShowHUD", nextVal)
         MPOptim.Config.Save()
@@ -179,11 +146,8 @@ function MPOptim.ToggleHUD()
     MPOptim.SetHUDVisible(nextVal)
 end
 
-local function onGameStartHUD()
-    local isShow = (MPOptim.Config and MPOptim.Config.Get("UI_ShowHUD")) or false
-    if isShow then
+Events.OnGameStart.Add(function()
+    if MPOptim.Config and MPOptim.Config.Get("UI_ShowHUD") then
         MPOptim.SetHUDVisible(true)
     end
-end
-
-Events.OnGameStart.Add(onGameStartHUD)
+end)

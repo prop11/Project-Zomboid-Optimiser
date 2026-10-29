@@ -11,6 +11,16 @@ require "MPOptim_Utils"
 MPOptim = MPOptim or {}
 MPOptim.WeatherOptimizer = MPOptim.WeatherOptimizer or {}
 
+-- Tree wind is a game option; only switch it back on if this mod switched it off
+local windDisabledByUs = false
+
+local function restoreTreeWind()
+    if windDisabledByUs and getCore and getCore().setOptionDoWindSpriteEffects then
+        getCore():setOptionDoWindSpriteEffects(true)
+    end
+    windDisabledByUs = false
+end
+
 function MPOptim.WeatherOptimizer.Update()
     if not MPOptim.Config then return end
 
@@ -30,7 +40,10 @@ function MPOptim.WeatherOptimizer.Update()
         IsoPuddles.isShaderEnable = enableCustomShaders and not isPotato
     end
 
-    if not MPOptim.Config.Get("Weather_Optimize") and not isPotato then return end
+    if not MPOptim.Config.Get("Weather_Optimize") and not isPotato then
+        restoreTreeWind()
+        return
+    end
 
     local clim = getClimateManager and getClimateManager()
     if not clim then return end
@@ -68,7 +81,10 @@ function MPOptim.WeatherOptimizer.Update()
         if isPotato or (MPOptim.Config and MPOptim.Config.Get("Weather_DisableTreeWind") == true) then
             if getCore().getOptionDoWindSpriteEffects and getCore():getOptionDoWindSpriteEffects() == true then
                 getCore():setOptionDoWindSpriteEffects(false)
+                windDisabledByUs = true
             end
+        else
+            restoreTreeWind()
         end
     end
 

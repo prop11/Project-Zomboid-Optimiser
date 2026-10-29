@@ -18,21 +18,6 @@ function MPOptim.UIOptimizer.Init()
     isInitialized = true
 
     if ISInventoryPane then
-        local original_renderdetails = ISInventoryPane.renderdetails
-        if original_renderdetails then
-            ISInventoryPane.renderdetails = function(self, doDragged)
-                if not MPOptim.Config or not MPOptim.Config.Get("UI_FastInventory") then
-                    return original_renderdetails(self, doDragged)
-                end
-
-                if not self.itemslist or #self.itemslist < 30 then
-                    return original_renderdetails(self, doDragged)
-                end
-
-                return original_renderdetails(self, doDragged)
-            end
-        end
-
         local original_updateTooltip = ISInventoryPane.updateTooltip
         if original_updateTooltip then
             ISInventoryPane.updateTooltip = function(self)

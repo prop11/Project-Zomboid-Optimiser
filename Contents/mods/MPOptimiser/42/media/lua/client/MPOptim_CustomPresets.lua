@@ -11,6 +11,8 @@ require "MPOptim_Utils"
 MPOptim = MPOptim or {}
 MPOptim.CustomPresets = MPOptim.CustomPresets or {}
 MPOptim.CustomPresets.Data = MPOptim.CustomPresets.Data or {}
+-- Added by LoadAll every time, so deleting them would not stick
+MPOptim.CustomPresets.BuiltIn = { ["Solo Balanced (No Cleanups)"] = true }
 
 local PRESETS_FILENAME = "MPOptim_CustomPresets.ini"
 
@@ -136,9 +138,6 @@ function MPOptim.CustomPresets.LoadPreset(name)
         end
         if MPOptim.ZoomLOD and MPOptim.ZoomLOD.Update then
             MPOptim.ZoomLOD.Update()
-        end
-        if MPOptim.VehicleSleeper and MPOptim.VehicleSleeper.Update then
-            MPOptim.VehicleSleeper.Update()
         end
     end
 

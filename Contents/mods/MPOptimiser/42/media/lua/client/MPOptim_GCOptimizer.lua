@@ -39,8 +39,8 @@ function MPOptim.GCOptimizer.PurgeMemory()
     local beforeKb = collectgarbage("count") or 0
     local beforeMB = MPOptim.GCOptimizer.GetCurrentMemoryMB()
 
-    collectgarbage("collect")
-    collectgarbage("collect")
+    local collect = (MPOptim.ModShield and MPOptim.ModShield.RawCollectGarbage) or collectgarbage
+    collect("collect")
 
     local afterKb = collectgarbage("count") or 0
     local afterMB = MPOptim.GCOptimizer.GetCurrentMemoryMB()
@@ -111,7 +111,8 @@ function MPOptim.GCOptimizer.Update()
     lastIdleSweepTime = now
     local beforeKb = collectgarbage("count") or 0
     local beforeMB = currentMemMB
-    collectgarbage("collect")
+    local collect = (MPOptim.ModShield and MPOptim.ModShield.RawCollectGarbage) or collectgarbage
+    collect("collect")
     local afterKb = collectgarbage("count") or 0
     local afterMB = MPOptim.GCOptimizer.GetCurrentMemoryMB()
 

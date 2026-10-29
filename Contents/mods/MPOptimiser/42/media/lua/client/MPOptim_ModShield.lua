@@ -12,6 +12,8 @@ MPOptim = MPOptim or {}
 MPOptim.ModShield = MPOptim.ModShield or {}
 
 local raw_collectgarbage = collectgarbage
+-- In Kahlua every collectgarbage("collect"/"step") is a full System.gc(); the mod's own planned sweeps use this one
+MPOptim.ModShield.RawCollectGarbage = raw_collectgarbage
 local raw_print = print
 local logHistory = {}
 local suppressedCounts = {}
@@ -39,8 +41,7 @@ function MPOptim.ModShield.InitGCInterceptor()
                 return raw_collectgarbage("collect")
             end
 
-            raw_collectgarbage("step", 60)
-
+            -- Mid-game: skip it ("step" would be the same full collection) and let the idle sweep collect instead
             if MPOptim.GCOptimizer and MPOptim.GCOptimizer.ScheduleIdlePurge then
                 MPOptim.GCOptimizer.ScheduleIdlePurge()
             end

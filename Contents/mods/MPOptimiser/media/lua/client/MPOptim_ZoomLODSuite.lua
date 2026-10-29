@@ -12,6 +12,8 @@ MPOptim = MPOptim or {}
 MPOptim.ZoomLOD = MPOptim.ZoomLOD or {}
 
 local lastZoomState = "NORMAL"
+-- The preset or user value in force before zooming out; restored instead of a fixed number
+local savedBlended = nil
 
 function MPOptim.ZoomLOD.Update()
     if not MPOptim.Config or not MPOptim.Config.Get("GFX_DynamicZoomLOD") then
@@ -32,6 +34,7 @@ function MPOptim.ZoomLOD.Update()
         if lastZoomState ~= "HIGH_ZOOM" then
             lastZoomState = "HIGH_ZOOM"
             if PerformanceSettings and PerformanceSettings.numberZombiesBlended ~= nil then
+                savedBlended = PerformanceSettings.numberZombiesBlended
                 PerformanceSettings.numberZombiesBlended = 4
             end
         end
@@ -44,9 +47,10 @@ end
 
 function MPOptim.ZoomLOD.Restore()
     lastZoomState = "NORMAL"
-    if PerformanceSettings and PerformanceSettings.numberZombiesBlended ~= nil then
-        PerformanceSettings.numberZombiesBlended = 10
+    if savedBlended and PerformanceSettings and PerformanceSettings.numberZombiesBlended ~= nil then
+        PerformanceSettings.numberZombiesBlended = savedBlended
     end
+    savedBlended = nil
 end
 
 Events.OnGameStart.Add(function()

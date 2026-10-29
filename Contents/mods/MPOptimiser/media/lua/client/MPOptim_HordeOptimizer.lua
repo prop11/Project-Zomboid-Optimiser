@@ -180,7 +180,7 @@ function MPOptim.HordeOptimizer.Apply()
         DebugOptions.instance:setBoolean("Threading.Lighting", threadLight)
     end
 
-    local targetLightingFPS = MPOptim.Config.Get("Lighting_FPS") or 60
+    local targetLightingFPS = MPOptim.Config.Get("Lighting_FPS") or 30
     if PerformanceSettings then
         if PerformanceSettings.setLightingFPS then
             PerformanceSettings.setLightingFPS(targetLightingFPS)
@@ -201,10 +201,8 @@ function MPOptim.HordeOptimizer.Apply()
     print(string.format("[MPOptimizer] Engine Optimizations Applied (Imposters: %s, BlendedZombies: %s, FalloffCount: %s, LightingFPS: %s)",
         tostring(enableImposters), tostring(PerformanceSettings.numberZombiesBlended or 20),
         tostring(PerformanceSettings.zombieAnimationSpeedFalloffCount or 6),
-        tostring(PerformanceSettings.lightingFps or 60)))
+        tostring(PerformanceSettings.lightingFps or 30)))
 end
-
-local zombieScanCursor = 0
 
 function MPOptim.HordeOptimizer.Update()
     if MPOptim.Config and MPOptim.Config.Get("Lighting_AdaptiveFPS") then
@@ -217,47 +215,6 @@ function MPOptim.HordeOptimizer.Update()
             PerformanceSettings.lightingFps = desiredLightFPS
         end
     end
-
-    local staggeredAI = MPOptim.Config and MPOptim.Config.Get("Horde_StaggeredAITicking") == true
-    if not staggeredAI then return end
-
-    local player = getPlayer and getPlayer()
-    if not player then return end
-
-    local cell = getCell and getCell()
-    if not cell then return end
-
-    local zombieList = cell:getZombieList()
-    if not zombieList or zombieList:size() == 0 then return end
-
-    local zCount = zombieList:size()
-    if zCount < 20 then return end
-
-    local px, py = player:getX(), player:getY()
-
-    local batchSize = math.max(35, math.floor(zCount / 4))
-    local scanStart = zombieScanCursor % zCount
-    local scanEnd = math.min(scanStart + batchSize, zCount)
-
-    for i = scanStart, scanEnd - 1 do
-        local zombie = zombieList:get(i)
-        -- A-Life NPCs walk patrol and travel routes without a target; clearing their path stalls them
-        if zombie and not zombie:isDead() and not MPOptim.Utils.isALifeNpc(zombie) then
-            local zx, zy = zombie:getX(), zombie:getY()
-            local distSq = (zx - px) * (zx - px) + (zy - py) * (zy - py)
-
-            if distSq > 625 and (i % 3 ~= 0) then
-                local hasTarget = (zombie.getTarget and zombie:getTarget() ~= nil) or (zombie.bHasTarget and zombie:bHasTarget())
-                if not hasTarget and not zombie:isTargetVisible() then
-                    if zombie.setPathFindIndex then
-                        zombie:setPathFindIndex(-1)
-                    end
-                end
-            end
-        end
-    end
-
-    zombieScanCursor = (scanEnd >= zCount) and 0 or scanEnd
 end
 
 Events.OnGameStart.Add(MPOptim.HordeOptimizer.Apply)

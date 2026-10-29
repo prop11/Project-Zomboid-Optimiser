@@ -74,14 +74,13 @@ local function registerNativeOptions()
         opt:addTickBox("Blood_CapPerTile", "Smart Blood Decal Stacking Cap", (MPOptim.Config and MPOptim.Config.Get("Blood_CapPerTile")) ~= false, "Eliminates GPU overdraw lag in combat by capping decals per tile")
         opt:addTickBox("Corpse_CullShadows", "Cull 3D Shadows on Dead Corpses", (MPOptim.Config and MPOptim.Config.Get("Corpse_CullShadows")) == true, "Disables dynamic shadow projection on dead bodies to save draw calls")
         opt:addTickBox("Weather_Optimize", "Optimize Rain Storms & Fog", (MPOptim.Config and MPOptim.Config.Get("Weather_Optimize")) == true, "Reduces rain particle density and fog shader overhead during storms")
-        opt:addTickBox("Weather_PuddleOptimization", "Ground-Level Puddle Optimization", (MPOptim.Config and MPOptim.Config.Get("Weather_PuddleOptimization")) ~= false, "Enforces Ground Only puddle mode (perfPuddles=2) to skip 8-neighbor tile queries while keeping full shader reflections on roads")
+        opt:addTickBox("Weather_PuddleOptimization", "Cap Fog Density", (MPOptim.Config and MPOptim.Config.Get("Weather_PuddleOptimization")) ~= false, "With storm optimization on, caps fog strength at 85 percent")
         opt:addTickBox("Weather_DisableTreeWind", "Disable Storm Tree Wind Sway (CPU Saver)", (MPOptim.Config and MPOptim.Config.Get("Weather_DisableTreeWind")) == true, "Disables barycentric tree sway recalculation during storms, preventing CPU stalls when driving through forests")
 
         opt:addTitle("Vehicles & Anti-Stutter Chunk Streaming")
-        opt:addTickBox("Vehicle_PhysicsSleep", "Parked Vehicle Physics Sleeper", (MPOptim.Config and MPOptim.Config.Get("Vehicle_PhysicsSleep")) == true, "Puts stationary parked vehicles into Bullet physics sleep mode")
         opt:addTickBox("Vehicle_ChunkPriorityMode", "Anti-Stutter Vehicle Streamer (Master Switch)", (MPOptim.Config and MPOptim.Config.Get("Vehicle_ChunkPriorityMode")) ~= false, "Prioritizes road chunk loading bandwidth and throttles non-essential systems while driving")
         opt:addTickBox("Vehicle_LimitDriveZoom", "Prevent Extreme Auto-Zoom While Driving", (MPOptim.Config and MPOptim.Config.Get("Vehicle_LimitDriveZoom")) == true, "Limits auto-zoom while driving to save draw calls. (Keep OFF to allow road chunks to stream ahead at high speed)")
-        opt:addTickBox("Vehicle_PreDrivePurge", "Pre-Drive RAM Purge on Vehicle Entry", (MPOptim.Config and MPOptim.Config.Get("Vehicle_PreDrivePurge")) == true, "Runs a quick memory cleanup when entering a vehicle")
+        opt:addTickBox("Vehicle_PreDrivePurge", "Pre-Drive RAM Purge on Vehicle Entry", (MPOptim.Config and MPOptim.Config.Get("Vehicle_PreDrivePurge")) == true, "Runs one full memory collection when you get in a vehicle (a short hitch then, instead of one mid-drive)")
         opt:addTickBox("Vehicle_ScaleLightingFPS", "Scale Dynamic Lighting While Driving", (MPOptim.Config and MPOptim.Config.Get("Vehicle_ScaleLightingFPS")) == true, "Reduces dynamic lighting update rate during high-speed travel")
         opt:addTickBox("Vehicle_SuspendBackgroundCleanups", "Suspend Background Sweeps While Driving", (MPOptim.Config and MPOptim.Config.Get("Vehicle_SuspendBackgroundCleanups")) ~= false, "Temporarily pauses tile sweeps and RAM purges while driving for smooth road loading")
         opt:addTickBox("Vehicle_ThreadedModelSlots", "Multi-Threaded 3D Model Loading (Build 42)", (MPOptim.Config and MPOptim.Config.Get("Vehicle_ThreadedModelSlots")) ~= false, "Offloads 3D vehicle parts and clothing loading to background threads")
@@ -98,7 +97,6 @@ local function registerNativeOptions()
 
         opt:addTitle("JVM Engine & Hardware Extensions (Optional)")
         opt:addTickBox("JVM_ZeroStutterGC", "Zero-Stutter Background GC Mode", (MPOptim.Config and MPOptim.Config.Get("JVM_ZeroStutterGC")) ~= false, "Offloads memory garbage collection to background G1GC threads")
-        opt:addTickBox("JVM_DeepChunkCache", "Deep RAM Chunk Cache (Zero Disk I/O)", (MPOptim.Config and MPOptim.Config.Get("JVM_DeepChunkCache")) ~= false, "Retains visited road and town chunks in RAM")
         opt:addTickBox("JVM_AsyncModelCompile", "Asynchronous 3D Model Compiling", (MPOptim.Config and MPOptim.Config.Get("JVM_AsyncModelCompile")) ~= false, "Compiles character clothing and vehicle textures in background threads")
         opt:addTickBox("JVM_HordeHibernation", "Distant Horde Spatial Hibernation", (MPOptim.Config and MPOptim.Config.Get("JVM_HordeHibernation")) ~= false, "Hibernates distant off-screen zombie pathfinding state in RAM")
         opt:addTickBox("JVM_BytecodeBloodCap", "Bytecode Blood Overdraw Cap", (MPOptim.Config and MPOptim.Config.Get("JVM_BytecodeBloodCap")) ~= false, "Directly patches IsoGridSquare.splatBlood in JVM bytecode to eliminate chunk FBO texture stalls")
@@ -117,11 +115,11 @@ local function registerNativeOptions()
                 "GFX_EnforceTextureCompression", "GFX_DynamicReflections", "GFX_ModelLighting", "Horde_ThrottleStaticAnims", "Horde_AccelerateAnimFalloff",
                 "Weather_ClampRainParticles", "Fire_ThrottleParticles",
                 "Blood_CapPerTile", "Corpse_CullShadows", "Weather_Optimize", "Weather_PuddleOptimization", "Weather_DisableTreeWind",
-                "Vehicle_PhysicsSleep", "Vehicle_ChunkPriorityMode", "Vehicle_LimitDriveZoom", "Vehicle_PreDrivePurge", "Vehicle_ScaleLightingFPS",
+                "Vehicle_ChunkPriorityMode", "Vehicle_LimitDriveZoom", "Vehicle_PreDrivePurge", "Vehicle_ScaleLightingFPS",
                 "Vehicle_SuspendBackgroundCleanups", "Vehicle_ThreadedModelSlots",
                 "GC_SmartIdleGC", "GC_PurgeThresholdMB", "Blood_AutoClean", "Corpse_AutoClean", "Corpse_IntervalHours", "Debris_AutoClean",
                 "Animal_CleanTracks", "Base_ProtectPlayerStructures",
-                "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_BytecodeBloodCap", "JVM_PathfindNativeAStar", "Mod_PacedEventRate", "Mod_ZombieScriptLOD"
+                "JVM_ZeroStutterGC", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_BytecodeBloodCap", "JVM_PathfindNativeAStar", "Mod_PacedEventRate", "Mod_ZombieScriptLOD"
             }) do
                 local o = self:getOption(optKey)
                 if o and o.value ~= nil then

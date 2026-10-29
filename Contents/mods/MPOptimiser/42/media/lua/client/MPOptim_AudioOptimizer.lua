@@ -18,7 +18,6 @@ local maxGroanEmitters = 16
 function MPOptim.AudioOptimizer.Update()
     if not MPOptim.Config then return end
 
-    local audioConcurrency = MPOptim.Config.Get("Horde_AudioConcurrencyLimit") ~= false
     local antiClipping = MPOptim.Config.Get("Audio_AntiClipping") ~= false
     local pruneQueue = MPOptim.Config.Get("Sound_AutoPruneQueue") == true
 

@@ -246,5 +246,13 @@
     "UI_MPOptim_Tooltip_PresetLoad": "Loads the selected custom preset profile and applies all configured optimization toggles immediately.",
     "UI_MPOptim_Tooltip_PresetSave": "Saves your current checkbox and slider settings into a new named preset profile.",
     "UI_MPOptim_Tooltip_PresetDelete": "Permanently deletes the selected custom preset profile.",
-    "UI_MPOptim_ProfilerRescan": "[*] Re-Scan Mod Memory"
+    "UI_MPOptim_ProfilerRescan": "[*] Re-Scan Mod Memory",
+    "UI_ModOptions_JVM_FSREnabled": "AMD FSR 1.0 Super Resolution",
+    "UI_MPOptim_Tooltip_JVM_FSREnabled": "Renders the 3D world at performance scale and reconstructs it with AMD FidelityFX Super Resolution (EASU + RCAS) while UI text stays native. Massive FPS boost on 1440p, 4K, and handhelds.",
+    "UI_ModOptions_JVM_FSRDynamic": "Dynamic Resolution Scaling",
+    "UI_MPOptim_Tooltip_JVM_FSRDynamic": "Dynamically adjusts FSR render scale based on real-time frametime headroom against target FPS (down to 65% or chosen scale) to absorb sudden horde or weather spikes.",
+    "UI_ModOptions_JVM_FSRScale": "FSR Quality Preset",
+    "UI_MPOptim_Tooltip_JVM_FSRScale": "Upscaling render resolution preset. Ultra Quality (77%) provides near-native image clarity with 30-50%+ FPS gains; Performance (50%) provides maximum boost.",
+    "UI_ModOptions_JVM_FSRSharpness": "FSR RCAS Sharpness",
+    "UI_MPOptim_Tooltip_JVM_FSRSharpness": "Robust Contrast-Adaptive Sharpening strength (0% = soft, 80% = recommended, 100% = max crispness)."
 }

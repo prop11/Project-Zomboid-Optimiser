@@ -29,6 +29,10 @@ MPOptim.DefaultConfig = {
     JVM_PathfindBudgetMs = 2,
     JVM_ChunkCacheSize = 500,
     JVM_GCThresholdMB = 6000,
+    JVM_FSREnabled = false,
+    JVM_FSRDynamic = false,
+    JVM_FSRScale = 77,
+    JVM_FSRSharpness = 80,
 
     -- JVM High-Memory Exclusive Features (Requires PZO Optimizer & 8GB+ RAM)
 
@@ -856,6 +860,18 @@ function MPOptim.Config.Load()
                         elseif key == "benchmark_optimized" or (key == "pzo_benchmark" and rawVal == "optimized") then
                             MPOptim.Config.Current["Mod_PacedEventRate"] = true
                             MPOptim.Config.Current["Mod_ZombieScriptLOD"] = true
+                        elseif key == "fsr" or key == "pzo_fsr" or key == "fsr_enabled" or key == "jvm_fsrenabled" then
+                            if isTrue then MPOptim.Config.Current["JVM_FSREnabled"] = true end
+                            if isFalse then MPOptim.Config.Current["JVM_FSREnabled"] = false end
+                        elseif key == "fsr_dynamic" or key == "fsr_dynamic_res" or key == "jvm_fsrdynamic" then
+                            if isTrue then MPOptim.Config.Current["JVM_FSRDynamic"] = true end
+                            if isFalse then MPOptim.Config.Current["JVM_FSRDynamic"] = false end
+                        elseif key == "fsr_scale" or key == "fsr_quality" or key == "jvm_fsrscale" then
+                            local n = tonumber(rawVal)
+                            if n then MPOptim.Config.Current["JVM_FSRScale"] = n end
+                        elseif key == "fsr_sharpness" or key == "sharpness" or key == "jvm_fsrsharpness" then
+                            local n = tonumber(rawVal)
+                            if n then MPOptim.Config.Current["JVM_FSRSharpness"] = n end
                         end
                     end
                 end
@@ -871,6 +887,21 @@ function MPOptim.Config.Load()
     if lastSeen == "0.0.0" or lastSeen == "1.4.0" or lastSeen == "1.4.1" then
         MPOptim.Config.Current["Vehicle_LimitDriveZoom"] = false
         MPOptim.Config.Current["Vehicle_ScaleLightingFPS"] = false
+    end
+
+    local bridge = (type(PZOEngineBridge) == "table" and PZOEngineBridge) or (type(PZOEngine) == "table" and PZOEngine)
+    if bridge then
+        if MPOptim.Config.Current["JVM_FSREnabled"] == nil and type(bridge.isWorldUpscalerActive) == "function" then
+            MPOptim.Config.Current["JVM_FSREnabled"] = (bridge.isWorldUpscalerActive() == true)
+        end
+        if MPOptim.Config.Current["JVM_FSRScale"] == nil and type(bridge.getWorldUpscalerRenderScale) == "function" then
+            local sc = tonumber(bridge.getWorldUpscalerRenderScale())
+            if sc and sc > 0 then MPOptim.Config.Current["JVM_FSRScale"] = math.floor(sc * 100 + 0.5) end
+        end
+        if MPOptim.Config.Current["JVM_FSRSharpness"] == nil and type(bridge.getWorldUpscalerSharpness) == "function" then
+            local sh = tonumber(bridge.getWorldUpscalerSharpness())
+            if sh and sh >= 0 then MPOptim.Config.Current["JVM_FSRSharpness"] = math.floor(sh * 100 + 0.5) end
+        end
     end
 
     return true
@@ -890,7 +921,13 @@ function MPOptim.Config.SyncToEngine()
     local bridge = (type(PZOEngineBridge) == "table" and PZOEngineBridge) or (type(PZOEngine) == "table" and PZOEngine)
     if bridge then
         if type(bridge.setJvmOption) == "function" then
-            local boolKeys = { "JVM_GLStateOptimizer", "JVM_StreamBufferBoost", "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_PowerShield", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_BytecodeBloodCap", "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle", "JVM_PathfindNativeAStar", "Mod_PacedEventRate", "Mod_ZombieScriptLOD" }
+            local boolKeys = {
+                "JVM_GLStateOptimizer", "JVM_StreamBufferBoost", "JVM_ZeroStutterGC", "JVM_DeepChunkCache",
+                "JVM_PowerShield", "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_BytecodeBloodCap",
+                "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle", "JVM_PathfindNativeAStar",
+                "Mod_PacedEventRate", "Mod_ZombieScriptLOD",
+                "JVM_FSREnabled", "JVM_FSRDynamic"
+            }
             for _, k in ipairs(boolKeys) do
                 local val = MPOptim.Config.Get(k)
                 if val ~= nil then
@@ -899,7 +936,7 @@ function MPOptim.Config.SyncToEngine()
             end
         end
         if type(bridge.setJvmIntOption) == "function" then
-            local intKeys = { "JVM_ChunkCacheSize", "JVM_GCThresholdMB", "JVM_PathfindBudgetMs" }
+            local intKeys = { "JVM_ChunkCacheSize", "JVM_GCThresholdMB", "JVM_PathfindBudgetMs", "JVM_FSRScale", "JVM_FSRSharpness" }
             for _, k in ipairs(intKeys) do
                 local val = tonumber(MPOptim.Config.Get(k))
                 if val then
@@ -916,7 +953,7 @@ function MPOptim.Config.Set(key, value)
 
     local bridge = (type(PZOEngineBridge) == "table" and PZOEngineBridge) or (type(PZOEngine) == "table" and PZOEngine)
     if bridge then
-        if string.find(key, "^JVM_") then
+        if string.find(key, "^JVM_") or string.find(key, "^Mod_") then
             if type(value) == "boolean" and type(bridge.setJvmOption) == "function" then
                 bridge.setJvmOption(key, value)
             elseif type(value) == "number" and type(bridge.setJvmIntOption) == "function" then

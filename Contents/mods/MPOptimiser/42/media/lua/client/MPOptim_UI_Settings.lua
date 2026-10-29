@@ -1045,11 +1045,53 @@ function MPOptim_SettingsUI:createChildren()
     addTick(self.panelTab6, jvmPfRightY + (2 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Mod_PacedEventRate", "Bytecode Mod Event Pacer (60Hz Clamp)"), "Mod_PacedEventRate", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Mod_PacedEventRate", "Paces 3rd-party mod OnTick and OnPlayerUpdate handlers at the JVM bytecode level to 60Hz and staggers execution across frames to eliminate frame time spikes on 120Hz/144Hz monitors.") .. jvmTipLock)
     addTick(self.panelTab6, jvmPfRightY + (3 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_Mod_ZombieScriptLOD", "Bytecode Zombie Script LOD (Near Player)"), "Mod_ZombieScriptLOD", nil, col2X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_Mod_ZombieScriptLOD", "Executes 3rd-party zombie mod scripts every frame near the player at JVM bytecode level, while staggering distant zombies across frames (83%+ Lua CPU reduction in hordes).") .. jvmTipLock)
 
+    -- Bottom Row 2 - AMD FidelityFX Super Resolution (FSR 1.0)
+    local jvmFsrHeaderY = math.max(jvmPfStepY + (1 * stepGap), jvmPfRightY + (4 * self.tickSpacing)) + math.floor(16 * scale)
+
+    -- Left Column: AMD FSR 1.0 Super Resolution
+    addSectionHeader(self.panelTab6, jvmFsrHeaderY, "-- AMD FIDELITYFX SUPER RESOLUTION (FSR 1.0) --", col1X, colW)
+    local jvmFsrLeftY = jvmFsrHeaderY + math.floor(22 * scale)
+    local onFsrToggle = function(selected)
+        local bridge = (type(PZOEngineBridge) == "table" and PZOEngineBridge) or (type(PZOEngine) == "table" and PZOEngine)
+        local pObj = getPlayer and getPlayer()
+        if pObj and MPOptim.Utils and MPOptim.Utils.Notify then
+            if selected then
+                local isLive = bridge and bridge.isWorldUpscalerActive and bridge.isWorldUpscalerActive()
+                if isLive then
+                    MPOptim.Utils.Notify(pObj, "AMD FSR 1.0 Super Resolution: Active", true)
+                else
+                    MPOptim.Utils.Notify(pObj, "AMD FSR 1.0 enabled for next launch (or launch with -pzo_fsr)", true)
+                end
+            else
+                MPOptim.Utils.Notify(pObj, "AMD FSR 1.0 Super Resolution: Disabled", true)
+            end
+        end
+    end
+    addTick(self.panelTab6, jvmFsrLeftY + (0 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_JVM_FSREnabled", "AMD FSR 1.0 Super Resolution"), "JVM_FSREnabled", onFsrToggle, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_FSREnabled", "Renders the 3D world at performance scale and reconstructs it with AMD FidelityFX Super Resolution (EASU + RCAS) while UI text stays native. Massive FPS boost on 1440p, 4K, and handhelds.") .. jvmTipLock)
+    addTick(self.panelTab6, jvmFsrLeftY + (1 * self.tickSpacing), MPOptim.GetText("UI_ModOptions_JVM_FSRDynamic", "Dynamic Resolution Scaling"), "JVM_FSRDynamic", nil, col1X, colW, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_FSRDynamic", "Dynamically adjusts FSR render scale based on real-time frametime headroom against target FPS (down to 65% or chosen scale) to absorb sudden horde or weather spikes.") .. jvmTipLock)
+
+    -- Right Column: Quality Preset & Sharpness
+    addSectionHeader(self.panelTab6, jvmFsrHeaderY, "-- FSR PRESET & RCAS SHARPNESS --", col2X, colW)
+    local jvmFsrRightY = jvmFsrHeaderY + math.floor(22 * scale)
+    local fsrScaleFormat = function(v)
+        if v == 50 then return "Performance (50%)"
+        elseif v == 59 then return "Balanced (59%)"
+        elseif v == 67 then return "Quality (67%)"
+        elseif v == 77 then return "Ultra Quality (77%)"
+        elseif v == 85 then return "85% Scale"
+        elseif v == 90 then return "90% Scale"
+        else return tostring(v) .. "%"
+        end
+    end
+    addStepper(self.panelTab6, jvmFsrRightY + (0 * stepGap), MPOptim.GetText("UI_ModOptions_JVM_FSRScale", "FSR Quality Preset"), "JVM_FSRScale", { 50, 59, 67, 77, 85, 90 }, fsrScaleFormat, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_FSRScale", "Upscaling render resolution preset. Ultra Quality (77%) provides near-native image clarity with 30-50%+ FPS gains; Performance (50%) provides maximum boost."), col2X, colW)
+    addStepper(self.panelTab6, jvmFsrRightY + (1 * stepGap), MPOptim.GetText("UI_ModOptions_JVM_FSRSharpness", "FSR RCAS Sharpness"), "JVM_FSRSharpness", { 0, 20, 40, 60, 80, 100 }, function(v) return tostring(v) .. "%" end, MPOptim.GetText("UI_MPOptim_Tooltip_JVM_FSRSharpness", "Robust Contrast-Adaptive Sharpening strength (0% = soft, 80% = recommended, 100% = max crispness)."), col2X, colW)
+
     if not isJvmActive then
         local jvmKeys = {
             "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_GLStateOptimizer", "JVM_PowerShield",
             "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_KahluaGCPacer", "JVM_StreamBufferBoost", "JVM_BytecodeBloodCap",
-            "JVM_PathfindNativeAStar", "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle", "Mod_PacedEventRate", "Mod_ZombieScriptLOD"
+            "JVM_PathfindNativeAStar", "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle", "Mod_PacedEventRate", "Mod_ZombieScriptLOD",
+            "JVM_FSREnabled", "JVM_FSRDynamic"
         }
         for _, k in ipairs(jvmKeys) do
             local box = self.tickboxMap[k]
@@ -1066,7 +1108,7 @@ function MPOptim_SettingsUI:createChildren()
         end
     end
 
-    local maxTab6Y = math.max(jvmPfStepY + (1 * stepGap), jvmPfRightY + (4 * self.tickSpacing)) + math.floor(40 * scale)
+    local maxTab6Y = math.max(jvmFsrLeftY + (2 * self.tickSpacing), jvmFsrRightY + (2 * stepGap)) + math.floor(40 * scale)
     makeScrollable(self.panelTab6, math.max(subH, maxTab6Y))
 
     -- =========================================================================
@@ -1508,7 +1550,8 @@ function MPOptim_SettingsUI:updateDependencies()
     local jvmKeys = {
         "JVM_ZeroStutterGC", "JVM_DeepChunkCache", "JVM_GLStateOptimizer", "JVM_PowerShield",
         "JVM_AsyncModelCompile", "JVM_HordeHibernation", "JVM_KahluaGCPacer", "JVM_StreamBufferBoost", "JVM_BytecodeBloodCap",
-        "JVM_PathfindNativeAStar", "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle", "Mod_PacedEventRate", "Mod_ZombieScriptLOD"
+        "JVM_PathfindNativeAStar", "JVM_PathfindBudget", "JVM_PathfindSquareMerge", "JVM_PathfindVehicleThrottle", "Mod_PacedEventRate", "Mod_ZombieScriptLOD",
+        "JVM_FSREnabled"
     }
     for _, k in ipairs(jvmKeys) do
         setBoxEnable(k, isJvmActive == true)
@@ -1523,6 +1566,11 @@ function MPOptim_SettingsUI:updateDependencies()
     setStepEnable("JVM_ChunkCacheSize", isJvmActive == true)
     setStepEnable("JVM_GCThresholdMB", isJvmActive == true)
     setStepEnable("JVM_PathfindBudgetMs", isJvmActive == true and isTick("JVM_PathfindBudget"))
+
+    local fsrMaster = (isJvmActive == true) and isTick("JVM_FSREnabled")
+    setBoxEnable("JVM_FSRDynamic", fsrMaster)
+    setStepEnable("JVM_FSRScale", fsrMaster)
+    setStepEnable("JVM_FSRSharpness", fsrMaster)
 end
 
 function MPOptim_SettingsUI:refreshAllControls()

@@ -1,4 +1,4 @@
-#version 120
+#version 330
 
 uniform sampler2D DIFFUSE;
 uniform sampler2D MASK;
@@ -9,8 +9,8 @@ uniform float B = 1.0;
 
 uniform float maskPaddingRadius = 0.0;
 
-varying vec4 vColor;
-varying vec2 vUV1;
+in vec4 vColor;
+in vec2 vUV1;
 
 #include "util/math"
 #include "util/bodyMask"

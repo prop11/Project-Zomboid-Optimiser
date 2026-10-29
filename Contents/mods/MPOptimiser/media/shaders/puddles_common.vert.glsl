@@ -1,25 +1,25 @@
-#version 120
+#version 330
 
-attribute vec2 vertex;
-attribute vec4 color;
-attribute float aDirNE;
-attribute float aDirNW;
-attribute float aDirAll;
-attribute float aDirNone;
-attribute float aFragDepth;
+layout (location = 0) in vec2 vertex;
+layout (location = 1) in vec4 color;
+layout (location = 2) in float aDirNE;
+layout (location = 3) in float aDirNW;
+layout (location = 4) in float aDirAll;
+layout (location = 5) in float aDirNone;
+layout (location = 6) in float aFragDepth;
 
 uniform mat4 ModelViewProjection;
 
-varying float puddlesDirNE;
-varying float puddlesDirNW;
-varying float puddlesDirAll;
-varying float puddlesDirNone;
-varying vec4 vertColour;
-varying float vDepth;
+out float puddlesDirNE;
+out float puddlesDirNW;
+out float puddlesDirAll;
+out float puddlesDirNone;
+out vec4 vertColour;
+out float vDepth;
 
 void puddlesMain(void)
 {
-	gl_Position = ModelViewProjection * vec4(vertex.xy, 0.0, 1.0);
+	gl_Position = ModelViewProjection * vec4(vertex.xy, 0, 1);
 	vertColour = color;
 
 	puddlesDirNE = aDirNE;

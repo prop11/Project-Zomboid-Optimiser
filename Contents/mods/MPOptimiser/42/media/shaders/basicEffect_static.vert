@@ -1,12 +1,12 @@
-#version 120
+#version 330
 
-attribute vec4 vertex;
-attribute vec4 normal;
-attribute vec2 uv;
+layout (location = 0) in vec4 vertex;
+layout (location = 1) in vec4 normal;
+layout (location = 2) in vec2 uv;
 
-varying vec3 vertColour;
-varying vec3 vertNormal;
-varying vec2 texCoords;
+out vec3 vertColour;
+out vec3 vertNormal;
+out vec2 texCoords;
 
 uniform mat4 ModelViewProjection;
 uniform mat4 transform;
@@ -19,13 +19,13 @@ uniform float FinalScale = 1.0;
 
 void main()
 {
-	vec4 position = vec4(vertex.xyz, 1.0);
-	vec4 norm = vec4(normal.xyz, 0.0);
+	vec4 position = vec4(vertex.xyz, 1);
+	vec4 normal = vec4(normal.xyz, 0);
 
 	texCoords = uv.st * UVScale.xy;
 
-	vertNormal = (transform * norm).xyz;
-	vertColour = vec3(1.0, 1.0, 1.0);
+	vertNormal = (transform * normal).xyz;
+	vertColour = vec3(1,1,1);
 
 	vec4 positionScaled = transform * position;
 	positionScaled.xyz *= FinalScale;
@@ -41,4 +41,5 @@ void main()
 	o.z = (clip*2)-1; // 0-1 -> 0-2 -> -1,+1
 
 	gl_Position = o;
+
 }

@@ -241,7 +241,8 @@ function MPOptim.HordeOptimizer.Update()
 
     for i = scanStart, scanEnd - 1 do
         local zombie = zombieList:get(i)
-        if zombie and not zombie:isDead() then
+        -- A-Life NPCs walk patrol and travel routes without a target; clearing their path stalls them
+        if zombie and not zombie:isDead() and not MPOptim.Utils.isALifeNpc(zombie) then
             local zx, zy = zombie:getX(), zombie:getY()
             local distSq = (zx - px) * (zx - px) + (zy - py) * (zy - py)
 

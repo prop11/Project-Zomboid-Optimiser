@@ -471,12 +471,24 @@ function MPOptim.Utils.isCorpseEmpty(corpse)
     return (not items or items:size() == 0)
 end
 
+-- Project A-Life NPCs are zombie shells driven by its Lua; their corpses keep the NPC's identity for its loot and lifecycle
+function MPOptim.Utils.isALifeNpc(obj)
+    if not obj or not obj.hasModData or not obj:hasModData() then return false end
+    local data = obj:getModData()
+    return type(data) == "table" and (data.ProjectALifeOwned == true or data.ProjectALifeActor == true
+        or data.ProjectALifeUID ~= nil or data.ProjectALifeCorpseOf ~= nil)
+end
+
 function MPOptim.Utils.canCleanCorpse(corpse, options)
     if not corpse then return false end
     local opts = options or {}
 
     -- 0. NEVER clean player corpses (IsoDeadBody.isPlayer from IsoDeadBody.java)
     if corpse.isPlayer and corpse:isPlayer() then
+        return false
+    end
+
+    if MPOptim.Utils.isALifeNpc(corpse) then
         return false
     end
 
